@@ -8,125 +8,146 @@ def initialize_hierarchy_from_dico(hierarchy_dico):
     for key in hierarchy_dico.keys():
         for child in hierarchy_dico[key]:
             hierarchy.add_edge(key, child)
+    # check if the hierarchy is a tree
+    if not nx.is_tree(hierarchy):
+        raise ValueError("The hierarchy is not a tree.")
     return hierarchy
 
 class Hierarchy:
-    def __init__(self, hierarchy_dico=None):
-        self.hierarchy_dico = hierarchy_dico
-        self.hierarchy_graph = (
-            initialize_hierarchy_from_dico(hierarchy_dico)
-            if hierarchy_dico is not None else None
-        )
-        self.leaves_idx = None
-        self.i2leaf = None
-        self.leaf2i = None
-        self.root = None
-        self.parent = None
-        self.depths = None
-        self.max_depth = None
-        self.probas_nodes = None
-        self.events = None
-        self.information_content = None
-        self.d_max = None
-        self.non_root_lowest_ancestor = None
+    def __init__(self, hierarchy_dico):
 
-    def create_binary_hierarchy(self, size):
+        self.hierarchy_dico_idx = self._build_hierarchy_with_idx(hierarchy_dico)
+        self.hierarchy_graph = initialize_hierarchy_from_dico(self.hierarchy_dico_idx)
+
+        self.root_idx = self.get_root_idx()
+        self.leaf_events = self._get_leaf_events()
+
+        self.parent = self._get_parent_mapping()
+        self.depths = self._get_depths()
+        self.depth_max_descendants = self._get_max_depth_of_descendants()
+        
+        # self.parent = None
+        # self.depths = None
+        # self.max_depth = None
+        # self.d_max = None
+        # self.non_root_lowest_ancestor = None
+
+    def _build_hierarchy_with_idx(self, hierarchy_dico):
         """
-        Build a full binary tree of given size (number of leaves).
+        Build a hierarchy dictionary transforming `hierarchy_dico` into a dictionary of indices.
+        This will create:
+        - self.node2i: mapping from node names to indices
+        - self.i2node: mapping from indices to node names
+        - self.hierarchy_dico_idx: mapping from node indices to lists of child indices.
+        Ensures that leaf nodes get the first indices (i.e., index 0 to n_leaves - 1).
         """
-        self.hierarchy_graph = nx.full_rary_tree(2, size, create_using=nx.DiGraph)
-        # Build hierarchy_dico from graph successors, filtering out leaves
-        self.hierarchy_dico = {
-            node: list(self.hierarchy_graph.successors(node))
-            for node in self.hierarchy_graph.nodes()
-            if self.hierarchy_graph.out_degree(node) > 0
+        # Collect all nodes and children
+        parents = set(hierarchy_dico.keys())
+        children = {c for clist in hierarchy_dico.values() for c in clist}
+
+        # Identify leaf nodes
+        leaves = list(children - parents)
+        non_leaves = list(parents)
+        ordered_nodes = leaves + non_leaves
+
+        # Build index mappings
+        self.node2i = {node: i for i, node in enumerate(ordered_nodes)}
+        self.i2node = {i: node for node, i in self.node2i.items()}
+
+        self.n_nodes = len(ordered_nodes)
+        self.n_leaves = len(leaves)
+        self.leaves_idx = [self.node2i[l] for l in leaves]
+
+        # Remap the hierarchy to use indices
+        hierarchy_dico_idx = {
+            self.node2i[parent]: [self.node2i[child] for child in children]
+            for parent, children in hierarchy_dico.items()
         }
 
-    def ensure_structure(self):
-        """
-        Ensure that leaves and root have been identified.
-        """
-        if self.leaves is None:
-            self.get_leaves()
-        if self.root is None:
-            self.get_root()
+        return hierarchy_dico_idx
 
-    def get_leaves(self):
+    
+    def _get_root_idx(self):
         """
-        Populate:
-          - self.leaves: list of leaf-node IDs
-          - self.i2leaf: map from index to leaf ID
-          - self.leaf2i: map from leaf ID to index
+        Identify the single root node (in-degree zero) in the hierarchy_graph_idx.
         """
-        self.leaves = [
-            node
-            for node in self.hierarchy_graph.nodes()
-            if self.hierarchy_graph.out_degree(node) == 0
-        ]
-        self.i2leaf = {i: leaf for i, leaf in enumerate(self.leaves)}
-        self.leaf2i = {leaf: i for i, leaf in enumerate(self.leaves)}
+        # use nx to find the root in the self.hierarchy_graph
+        root_idx = [n for n in self.hierarchy_graph.nodes() if self.hierarchy_graph.in_degree(n) == 0][0]
+        return root_idx
 
-    def get_root(self):
+    def _get_leaf_events(self):
         """
-        Identify the single root node (in-degree zero).
+        Build an event-encoding matrix of shape (n_leaves, n_nodes),
+        where each row corresponds to one leaf, and entries are 1 if the node
+        lies on the path from root to that leaf, else 0.
         """
-        self.root = next(node for node, deg in self.hierarchy_graph.in_degree() if deg == 0)
+        leaf_events = np.zeros((self.n_leaves, self.n_nodes), dtype=int)
+        def dfs(node, path):
+            path = path + [node]
+            if node in self.leaves_idx:
+                for ancestor in path:
+                    # node is in leaves_idx, and we ensured leaves have indices 0..n_leaves-1
+                    leaf_events[node, ancestor] = 1
+            for child in self.hierarchy_graph.successors(node):
+                dfs(child, path)
 
-    def compute_parent(self):
+        dfs(self.root_idx, [])
+        return leaf_events
+        
+    def _get_parent_mapping(self):
         """
         Build a map self.parent: child -> parent for every non-root node.
         """
-        self.parent = {
-            child: parent
-            for parent, children in self.hierarchy_dico.items()
-            for child in children
-        }
+        parent = {}
+        for parent, children in self.hierarchy_dico_idx.items():
+            for child in children:
+                parent[child] = parent
 
-    def compute_depth(self):
+        assert self.root_idx not in parent, "Root node should not have a parent."
+        return parent
+
+
+    def _get_depths(self):
         """
-        Populate self.depths: array of depth for every node.
+        Populate depths: array of depth for every node.
         """
-        self.ensure_structure()
-        self.depths = np.zeros(len(self.hierarchy_graph), dtype=int)
+        depths = np.zeros(self.n_nodes, dtype=int)
 
         def recurse(node, depth):
-            self.depths[node] = depth
-            for child in self.hierarchy_dico.get(node, []):
+            depths[node] = depth
+            for child in self.hierarchy_dico_idx[node]:
                 recurse(child, depth + 1)
 
-        recurse(self.root, 0)
+        recurse(self.root_idx, 0)
+        return depths
 
-    def compute_all_d_max(self):
+    def _get_max_depth_of_descendants(self):
         """
-        Populate self.d_max: dictionary node -> maximum depth of any leaf descendant.
+        Populate depth_max_descendants: array of maximum depth of any leaf descendant of node.
         """
-        self.ensure_structure()
-        if self.depths is None:
-            self.compute_depth()
-
-        self.d_max = {}
+        depth_max_descendants = np.zeros(self.n_nodes, dtype=int)
 
         def recurse(node):
-            if node in self.leaves:
-                self.d_max[node] = self.depths[node]
+            if node in self.leaves_idx:
+                depth_max_descendants[node] = self.depths[node]
                 return self.depths[node]
-            max_child_depth = max(recurse(child) for child in self.hierarchy_dico[node])
-            self.d_max[node] = max_child_depth
+            max_child_depth = np.max([recurse(child) for child in self.hierarchy_dico_idx[node]])
+            depth_max_descendants[node] = max_child_depth
             return max_child_depth
 
-        recurse(self.root)
-        self.max_depth = self.d_max[self.root] 
-        return self.d_max
+        recurse(self.root_idx)
+        self.depth_max = depth_max_descendants[self.root_idx] 
+        return depth_max_descendants
 
 
-    def compute_leaf_descendants_index(self, node):
+    def compute_leaf_descendants_index(self, node: int) -> list[int]:
         """
-        Return a list of leaf IDs descending from the given node.
+        Recursively return a list of leaf node indices descending from the given node.
         """
-        if node in self.leaves:
+        if node in self.leaves_idx:
             return [node]
         descendants = []
-        for child in self.hierarchy_dico[node]:
+        for child in self.hierarchy_dico_idx.get(node, []):
             descendants.extend(self.compute_leaf_descendants_index(child))
         return descendants
 
@@ -136,19 +157,17 @@ class Hierarchy:
         compute self.probas_nodes of shape (n_samples, n_nodes),
         where each node's probability is the sum of its leaf descendants'.
         """
-        self.ensure_structure()
-        if probas_leaves.shape[1] != len(self.leaves):
+        if probas_leaves.shape[1] != self.n_leaves:
             raise ValueError(
-                f"Probas shape mismatch: got {probas_leaves.shape}, "
-                f"expected number of columns = {len(self.leaves)}"
+                f"Probas shape mismatch: got {probas_leaves.shape[1]}, "
+                f"expected number of columns = {self.n_leaves}"
             )
 
         n_samples = probas_leaves.shape[0]
-        n_nodes = len(self.hierarchy_graph)
-        self.probas_nodes = np.zeros((n_samples, n_nodes))
+        self.probas_nodes = np.zeros((n_samples, self.n_nodes))
 
         def assign_proba_rec(node):
-            if node in self.leaves:
+            if node in self.leaves_idx:
                 node_prob = probas_leaves[:, self.leaf2i[node]]
                 self.probas_nodes[:, node] = node_prob
                 return node_prob
