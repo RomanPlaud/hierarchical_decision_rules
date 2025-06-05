@@ -14,12 +14,12 @@ def initialize_hierarchy_from_dico(hierarchy_dico):
     return hierarchy
 
 class Hierarchy:
-    def __init__(self, hierarchy_dico):
+    def __init__(self, hierarchy_dico_idx):
 
-        self.hierarchy_dico_idx = self._build_hierarchy_with_idx(hierarchy_dico)
-        self.hierarchy_graph = initialize_hierarchy_from_dico(self.hierarchy_dico_idx)
+        self._check_format_hierarchy(hierarchy_dico_idx)
+        self.hierarchy_graph =   initialize_hierarchy_from_dico(self.hierarchy_dico_idx)
 
-        self.root_idx = self.get_root_idx()
+        self.root_idx = self._get_root_idx()
         self.leaf_events = self._get_leaf_events()
 
         self.parent = self._get_parent_mapping()
@@ -32,40 +32,46 @@ class Hierarchy:
         # self.d_max = None
         # self.non_root_lowest_ancestor = None
 
-    def _build_hierarchy_with_idx(self, hierarchy_dico):
+    def _check_format_hierarchy(self, hierarchy_dico_idx):
         """
-        Build a hierarchy dictionary transforming `hierarchy_dico` into a dictionary of indices.
-        This will create:
-        - self.node2i: mapping from node names to indices
-        - self.i2node: mapping from indices to node names
-        - self.hierarchy_dico_idx: mapping from node indices to lists of child indices.
-        Ensures that leaf nodes get the first indices (i.e., index 0 to n_leaves - 1).
+        Check that leaf nodes get the first indices (i.e., index 0 to n_leaves - 1).
+        Check that non-leaf nodes get the indices from n_leaves to n_nodes - 1.
+        Check that the hierarchy_dico_idx is a valid hierarchy (i.e., no cycles, single root).
         """
-        # Collect all nodes and children
-        parents = set(hierarchy_dico.keys())
-        children = {c for clist in hierarchy_dico.values() for c in clist}
-
-        # Identify leaf nodes
-        leaves = list(children - parents)
-        non_leaves = list(parents)
-        ordered_nodes = leaves + non_leaves
-
-        # Build index mappings
-        self.node2i = {node: i for i, node in enumerate(ordered_nodes)}
-        self.i2node = {i: node for node, i in self.node2i.items()}
-
-        self.n_nodes = len(ordered_nodes)
-        self.n_leaves = len(leaves)
-        self.leaves_idx = [self.node2i[l] for l in leaves]
-
-        # Remap the hierarchy to use indices
-        hierarchy_dico_idx = {
-            self.node2i[parent]: [self.node2i[child] for child in children]
-            for parent, children in hierarchy_dico.items()
-        }
-
-        return hierarchy_dico_idx
-
+        # check hierarchy_dico_idx is a dictionary
+        if not isinstance(hierarchy_dico_idx, dict):
+            raise TypeError("Hierarchy must be a dictionary mapping node indices to their children indices.")
+        # check hierarchy_dico_idx is not empty
+        if not hierarchy_dico_idx:
+            raise ValueError("Hierarchy cannot be empty.")
+        # check that all keys are integers
+        if not all(isinstance(k, int) for k in hierarchy_dico_idx.keys()):
+            raise TypeError("All keys in hierarchy_dico_idx must be integers.")
+        # check that all values are lists of integers
+        if not all(isinstance(v, list) and all(isinstance(i, int) for i in v) for v in hierarchy_dico_idx.values()):
+            raise TypeError("All values in hierarchy_dico_idx must be lists of integers.")
+        # check that all indices are unique
+        all_indices = set(hierarchy_dico_idx.keys())
+        for children in hierarchy_dico_idx.values():
+            all_indices.update(children)
+        if len(all_indices) != len(set(all_indices)):
+            raise ValueError("Hierarchy indices must be unique.")
+        # check that the hierarchy is a tree
+        if not nx.is_tree(initialize_hierarchy_from_dico(hierarchy_dico_idx)):
+            raise ValueError("Hierarchy must be a tree (i.e., no cycles, single root).")
+        # get all leaves
+        parents = set(hierarchy_dico_idx.keys())
+        all_children = set([child for children in hierarchy_dico_idx.values() for child in children])
+        nodes = parents.union(all_children)
+        leaves_idx = list(nodes - parents)
+        if max(leaves_idx) >= len(leaves_idx):
+            raise ValueError("Leaf indices must be in the range [0, n_leaves - 1].")
+        if max(nodes) >= len(nodes):
+            raise ValueError("Node indices must be in the range [0, n_nodes - 1].")
+        self.hierarchy_dico_idx = hierarchy_dico_idx
+        self.n_nodes = len(nodes)
+        self.n_leaves = len(leaves_idx)
+        self.leaves_idx = np.arange(self.n_leaves)
     
     def _get_root_idx(self):
         """
@@ -88,8 +94,9 @@ class Hierarchy:
                 for ancestor in path:
                     # node is in leaves_idx, and we ensured leaves have indices 0..n_leaves-1
                     leaf_events[node, ancestor] = 1
-            for child in self.hierarchy_graph.successors(node):
-                dfs(child, path)
+            else:
+                for child in self.hierarchy_dico_idx[node]:
+                    dfs(child, path)
 
         dfs(self.root_idx, [])
         return leaf_events
@@ -98,13 +105,13 @@ class Hierarchy:
         """
         Build a map self.parent: child -> parent for every non-root node.
         """
-        parent = {}
+        parents = {}
         for parent, children in self.hierarchy_dico_idx.items():
             for child in children:
-                parent[child] = parent
+                parents[child] = parent
 
-        assert self.root_idx not in parent, "Root node should not have a parent."
-        return parent
+        assert self.root_idx not in parents, "Root node should not have a parent."
+        return parents
 
 
     def _get_depths(self):
@@ -115,8 +122,11 @@ class Hierarchy:
 
         def recurse(node, depth):
             depths[node] = depth
-            for child in self.hierarchy_dico_idx[node]:
-                recurse(child, depth + 1)
+            if node in self.leaves_idx:
+                return
+            else:
+                for child in self.hierarchy_dico_idx[node]:
+                    recurse(child, depth + 1)
 
         recurse(self.root_idx, 0)
         return depths

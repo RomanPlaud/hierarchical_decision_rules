@@ -1,4 +1,4 @@
-from base_metric import Metric
+from .base_metric import Metric
 import numpy as np
 import networkx as nx
 

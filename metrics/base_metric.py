@@ -7,7 +7,7 @@ class Metric(ABC):
         Common initializer: Initialize the metric with a hierarchy object.
         """    
         self.hierarchy = hierarchy
-        self.leaf_events = hierarchy.events
+        self.leaf_events = hierarchy.leaf_events
 
     @abstractmethod
     def metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
