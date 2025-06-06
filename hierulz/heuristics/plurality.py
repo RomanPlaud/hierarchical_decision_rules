@@ -7,9 +7,11 @@ class Plurality(Heuristic):
         Initialize the Plurality heuristic with a hierarchy object.
         """
         super().__init__(hierarchy)
+        
     def decode(self, proba_nodes: np.ndarray) -> np.ndarray:
         """
-        Decode node-wise predictions to binary vectors using a plurality approach.
+        Given node-wise probabilities, select the most probable node 
+        whose probability is greater than the maximum probability of all of its non-ancestor node.
         """
         def decode_rec(node, cand, p, maxi):
             if not (node in self.hierarchy_dico.keys()):
@@ -31,7 +33,7 @@ class Plurality(Heuristic):
                     else: 
                         return cand
 
-        all_candidates = np.zeros_like(proba_nodes)
-        for p_i, cand_i in zip(proba_nodes, all_candidates):
+        full_predictions = np.zeros_like(proba_nodes)
+        for p_i, cand_i in zip(proba_nodes, full_predictions):
             _ = decode_rec(self.hierarchy.root_idx, cand_i, p_i, 0)
-        return all_candidates 
+        return full_predictions 

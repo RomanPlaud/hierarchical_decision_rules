@@ -11,7 +11,8 @@ class ExpectedInformation(Heuristic):
 
     def decode(self, proba_nodes: np.ndarray) -> np.ndarray:
         """
-        Decode node-wise predictions to binary vectors using expected information.
+        Given node-wise probabilities, select the highest expected information node
+        (weighted by lambda) and return binary vectors with 1s for the selected nodes
         """
         predicted_nodes = np.argmax(proba_nodes*(self.hierarchy.information_content + self._lambda), axis=1)
         full_predictions = np.zeros_like(proba_nodes)

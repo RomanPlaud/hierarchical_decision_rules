@@ -11,6 +11,7 @@ class HiE(Heuristic):
     def decode(self, proba_nodes: np.ndarray) -> np.ndarray:
         """
         Decode node-wise predictions to binary vectors using the HiE heuristic.
+        See https://openreview.net/forum?id=hiQG8qGxso for details.
         """
         proba_leaves = proba_nodes[:, self.hierarchy.leaves_idx]
         probas_parents = proba_nodes[:, [self.hierarchy.parent[l] for l in self.hierarchy.leaves_idx]]

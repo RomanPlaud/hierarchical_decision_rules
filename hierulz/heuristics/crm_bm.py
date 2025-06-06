@@ -16,6 +16,7 @@ class CRM_BM(Heuristic):
     def decode(self, proba_nodes: np.ndarray) -> np.ndarray:
         """
         Decode node-wise predictions to binary vectors using the CRM_BM heuristic.
+        See https://openreview.net/forum?id=193sEnKY1ij for details.
         """
         full_predictions = np.zeros_like(proba_nodes)
         for i, p_i in enumerate(proba_nodes):

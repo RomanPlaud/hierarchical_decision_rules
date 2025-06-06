@@ -11,7 +11,8 @@ class InformationThreshold(Heuristic):
 
     def decode(self, proba_nodes: np.ndarray) -> np.ndarray:
         """
-        Decode node-wise predictions to binary vectors based on an information threshold.
+        Given node-wise probabilities, select the most probable node whose information content exceeds the threshold.
+        Return binary vectors with 1s for the selected node and all its ancestors.
         """
         candidates = self.hierarchy.information_content >= self.threshold
         predicted_nodes = np.argmax(candidates*proba_nodes, axis=1)
