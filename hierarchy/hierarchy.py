@@ -1,17 +1,7 @@
 import networkx as nx
 import numpy as np
 
-def initialize_hierarchy_from_dico(hierarchy_dico):
-    # hierarchy_dico is a dictionary whose keys are the names of the classes and values are the names of the children classes of the key
-    # initialize a nx graph from the dictionary hierarchy_dico
-    hierarchy = nx.DiGraph()
-    for key in hierarchy_dico.keys():
-        for child in hierarchy_dico[key]:
-            hierarchy.add_edge(key, child)
-    # check if the hierarchy is a tree
-    if not nx.is_tree(hierarchy):
-        raise ValueError("The hierarchy is not a tree.")
-    return hierarchy
+from utils import initialize_hierarchy_from_dico
 
 class Hierarchy:
     def __init__(self, hierarchy_dico_idx):
@@ -25,17 +15,9 @@ class Hierarchy:
         self.parent = self._get_parent_mapping()
         self.depths = self._get_depths()
         self.depth_max_descendants = self._get_max_depth_of_descendants()
-
         self.non_root_lowest_ancestor = self._compute_non_root_lowest_ancestor()
 
         self.information_content = self._compute_information_content()
-        
-        
-        # self.parent = None
-        # self.depths = None
-        # self.max_depth = None
-        # self.d_max = None
-        # self.non_root_lowest_ancestor = None
 
     def _check_format_hierarchy(self, hierarchy_dico_idx):
         """
