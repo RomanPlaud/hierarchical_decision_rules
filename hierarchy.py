@@ -188,34 +188,18 @@ class Hierarchy:
         assign_proba_rec(self.root)
         return self.probas_nodes
 
-    def get_events(self):
-        """
-        Build an event-encoding matrix of shape (n_leaves, n_nodes),
-        where each row corresponds to one leaf, and entries are 1 if the node
-        lies on the path from root to that leaf, else 0.
-        """
-        self.ensure_structure()
-        events_list = []
-        for leaf in self.leaves:
-            ancestors = nx.shortest_path(self.hierarchy_graph, self.root, leaf)
-            event_vector = np.array(
-                [1 if node in ancestors else 0 for node in range(len(self.hierarchy_graph))]
-            )
-            events_list.append(event_vector)
-        self.events = np.vstack(events_list)
 
     def get_ancestors(self, node):
         """
         Return a list of ancestor node IDs for the given node,
         starting from the node itself up to the root.
         """
-        self.compute_parent()
         ancestors = []
         current = node
-        while current != self.root:
+        while current != self.root_idx:
             ancestors.append(current)
             current = self.parent[current]
-        ancestors.append(self.root)
+        ancestors.append(self.root_idx)
         return ancestors
 
     def compute_non_root_lowest_ancestor(self):
