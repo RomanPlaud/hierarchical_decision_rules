@@ -83,13 +83,13 @@ def decode(self, probas_nodes):
         """
         Decode the predicted probabilities into a binary matrix of shape (n_samples, n_nodes).
         """
-        predictions_opt = np.zeros_like(probas_nodes)
+        predictions_opts = np.zeros_like(probas_nodes)
         # all_f = np.zeros(self.hierarchy.n_nodes)
         delta = self._compute_delta(probas_nodes)
 
-        candidate_nodes = (probas_nodes >= self.q_min_beta)
+        all_candidates = (probas_nodes >= self.q_min_beta)
 
-        for i, (cand_i, p_i) in enumerate(zip(candidate_nodes, probas_nodes)):
+        for i, (cand_i, p_i) in enumerate(zip(all_candidates, probas_nodes)):
             idx_cand_i = np.where(cand_i)[0]
             k_max_i = len(idx_cand_i)
             value_pred_max = 0
@@ -100,5 +100,5 @@ def decode(self, probas_nodes):
                 value_pred = np.sum(delta[i, k, idx_cand_i[top_k_nodes_delta]])
                 if value_pred > value_pred_max:
                     value_pred_max = value_pred
-                    predictions_opt[i] = prediction_i
-        return predictions_opt
+                    predictions_opts[i] = prediction_i
+        return predictions_opts
