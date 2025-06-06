@@ -25,6 +25,9 @@ class Hierarchy:
         self.parent = self._get_parent_mapping()
         self.depths = self._get_depths()
         self.depth_max_descendants = self._get_max_depth_of_descendants()
+
+        self.non_root_lowest_ancestor = self._compute_non_root_lowest_ancestor()
+        
         
         # self.parent = None
         # self.depths = None
@@ -148,18 +151,36 @@ class Hierarchy:
         recurse(self.root_idx)
         self.depth_max = depth_max_descendants[self.root_idx] 
         return depth_max_descendants
+    
+    def _compute_non_root_lowest_ancestor(self):
+        """
+        For every node (except root), record the first child of root
+        on its path from the root. The root maps to itself.
+        """
+        non_root_lowest_ancestor = np.zeros(self.n_nodes, dtype=int)
+        non_root_lowest_ancestor[self.root_idx] = self.root_idx
+
+        def recurse(lowest_ancestor, node):
+            non_root_lowest_ancestor[node] = lowest_ancestor
+            for child in self.hierarchy_dico_idx[node]:
+                recurse(lowest_ancestor, child)
+
+        for child in self.hierarchy_dico_idx[self.root_idx]:
+            recurse(child, child)
+
+        return non_root_lowest_ancestor
 
 
-    def compute_leaf_descendants_index(self, node: int) -> list[int]:
-        """
-        Recursively return a list of leaf node indices descending from the given node.
-        """
-        if node in self.leaves_idx:
-            return [node]
-        descendants = []
-        for child in self.hierarchy_dico_idx.get(node, []):
-            descendants.extend(self.compute_leaf_descendants_index(child))
-        return descendants
+    # def compute_leaf_descendants_index(self, node: int) -> list[int]:
+    #     """
+    #     Recursively return a list of leaf node indices descending from the given node.
+    #     """
+    #     if node in self.leaves_idx:
+    #         return [node]
+    #     descendants = []
+    #     for child in self.hierarchy_dico_idx.get(node, []):
+    #         descendants.extend(self.compute_leaf_descendants_index(child))
+    #     return descendants
 
     def get_probas(self, probas_leaves):
         """
@@ -202,21 +223,6 @@ class Hierarchy:
         ancestors.append(self.root_idx)
         return ancestors
 
-    def compute_non_root_lowest_ancestor(self):
-        """
-        For every node (except root), record the first child of root
-        on its path from the root. The root maps to itself.
-        """
-        self.ensure_structure()
-        self.non_root_lowest_ancestor = {self.root: self.root}
-
-        def recurse(lowest_ancestor, node):
-            self.non_root_lowest_ancestor[node] = lowest_ancestor
-            for child in self.hierarchy_dico.get(node, []):
-                recurse(lowest_ancestor, child)
-
-        for child in self.hierarchy_dico.get(self.root, []):
-            recurse(child, child)
 
     def compute_information_content(self):
         """
