@@ -1,7 +1,6 @@
 from ..metrics.leaf2leaf_metric import Leaf2LeafMetric
 from .base_heuristic import Heuristic
 import numpy as np
-import networkx as nx
 
 class CRM_BM(Heuristic):
     def __init__(self, hierarchy):
@@ -9,7 +8,6 @@ class CRM_BM(Heuristic):
         Initialize the CRM_BM heuristic with a hierarchy object and a metric.
         """
         super().__init__(hierarchy)
-        # get all pairs of leaf nodes distances (use nx.shortest_path_length)
         cost_matrix = self.get_distance_matrix()
 
         self.metric = Leaf2LeafMetric(hierarchy, cost_matrix)
