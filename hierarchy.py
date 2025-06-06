@@ -27,6 +27,8 @@ class Hierarchy:
         self.depth_max_descendants = self._get_max_depth_of_descendants()
 
         self.non_root_lowest_ancestor = self._compute_non_root_lowest_ancestor()
+
+        self.information_content = self._compute_information_content()
         
         
         # self.parent = None
@@ -169,6 +171,25 @@ class Hierarchy:
             recurse(child, child)
 
         return non_root_lowest_ancestor
+    
+    def _compute_information_content(self):
+        """
+        Compute self.information_content[node] = log2(N_leaves / n_descendants(node))
+        for each node, where n_descendants is the count of leaf descendants.
+        """
+        information_content = np.zeros(self.n_nodes)
+
+        def recurse(node):
+            if node in self.leaves_idx:
+                count = 1
+                information_content[node] = np.log2(self.n_leaves)
+                return count
+            count = sum(recurse(child) for child in self.hierarchy_dico_idx[node])
+            information_content[node] = np.log2(self.n_leaves / count)
+            return count
+
+        recurse(self.root_idx)
+        return information_content
 
 
     # def compute_leaf_descendants_index(self, node: int) -> list[int]:
@@ -222,63 +243,3 @@ class Hierarchy:
             current = self.parent[current]
         ancestors.append(self.root_idx)
         return ancestors
-
-
-    def compute_information_content(self):
-        """
-        Compute self.information_content[node] = log2(N_leaves / n_descendants(node))
-        for each node, where n_descendants is the count of leaf descendants.
-        """
-        self.ensure_structure()
-        n_leaves = len(self.leaves)
-        self.information_content = np.zeros(len(self.hierarchy_graph))
-
-        def recurse(node):
-            if node in self.leaves:
-                count = 1
-                self.information_content[node] = np.log2(n_leaves)
-                return count
-            count = sum(recurse(child) for child in self.hierarchy_dico[node])
-            self.information_content[node] = np.log2(n_leaves / count)
-            return count
-
-        recurse(self.root)
-        return self.information_content
-
-    def compute_delta_general(self, probas_leaves, beta=1):
-        """
-        Compute delta tensor of shape (n_samples, k_max+1, n_nodes), where
-        k_max = max over samples of (# nodes with prob >= p_max),
-        p_max = 1 / [1 + beta^2 * (max_depth + 1)].
-        """
-        self.ensure_structure()
-        self.compute_depth_max()
-        self.get_probas(probas_leaves)
-
-        denom = 1 + (beta ** 2) * (self.max_depth + 1)
-        p_max = 1 / denom
-        # For each sample, count nodes with prob >= p_max; take the maximum
-        k_max = int(np.max(np.sum(self.probas_nodes >= p_max, axis=1)))
-
-        n_samples, n_nodes = self.probas_nodes.shape
-        delta = np.zeros((n_samples, k_max + 1, n_nodes))
-
-        def recurse(node, depth, k):
-            if node in self.leaves:
-                weight = (1 + beta ** 2) / (k + (beta ** 2) * (depth + 1))
-                dval = self.probas_nodes[:, node] * weight
-            else:
-                dval = sum(recurse(child, depth + 1, k) for child in self.hierarchy_dico[node])
-            delta[:, k, node] = dval
-            return dval
-
-        for k in range(1, k_max + 1):
-            recurse(self.root, 0, k)
-
-        return delta
-
-    def compute_delta_beta(self, probas_leaves, beta=1):
-        """
-        Wrapper around compute_delta_general, with an explicit beta parameter.
-        """
-        return self.compute_delta_general(probas_leaves, beta=beta)
