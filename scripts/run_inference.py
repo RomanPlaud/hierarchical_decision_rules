@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from hierulz.datasets import get_dataset
 from hierulz.hierarchy import load_hierarchy, Hierarchy
-from hierulz.models import load_model, infer_on_batch
+from hierulz.models import load_model
 from hierulz.utils import save_pickle
 
 
@@ -30,21 +30,20 @@ def main():
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
     dataset = get_dataset(dataset=args.dataset, split=args.split, blurr_level=args.blurr_level)
-
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 
-    model = load_model(args.model, dataset_name=args.dataset, pretrained=args.pretrained, device=device)
-
+    model = load_model(args.config_model)
+        
     probas, labels = [], []
     model.eval()
     with torch.no_grad():
         for images, target in tqdm(dataloader):
             images = images.to(device)
-            output = infer_on_batch(model, images, args.model, args.dataset)
+            output = model.infer_on_batch(images)
             probas.append(output.cpu())
             labels.append(target)
 
-    save_dir = os.path.join('results', args.dataset, args.model)
+    save_dir = os.path.join('results', args.dataset, args.config_model['model_name'])
     os.makedirs(save_dir, exist_ok=True)
     suffix = f'_blurr_{args.blurr_level}' if args.blurr_level else ''
 

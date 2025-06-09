@@ -13,9 +13,10 @@ class HierarchicalModel:
         Initialize the HierarchicalModel.
 
         Args:
-            model_config (dict): Configuration dictionary for the model.
+            model (nn.Module): The base model to wrap. It should contain a classifier layer.
         """
-
+        self.model = model
+        
 
     def _find_last_linear_layer(self) -> nn.Linear:
         """

@@ -2,14 +2,14 @@
 from hierulz.datasets.dataset import HierarchicalDataset
 
 
-
-def get_dataset(dataset, split='test', blurr_level=None, kernel_size=61):
+def get_dataset(dataset, split='test', transform=None, blurr_level=None, kernel_size=61):
     """
     Get a dataset for inference.
 
     Args:
         dataset (str): Name of the dataset to use, either 'tieredimagenet' or 'inat19'.
         split (str): Dataset split to use for inference (e.g., 'test', 'val').
+        transform (str)
         blurr_level (float, optional): Sigma value for Gaussian blur. If None, no blur is applied.
 
     Returns:
