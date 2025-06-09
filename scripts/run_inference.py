@@ -1,11 +1,12 @@
 import argparse
-import os
+import json
+from pathlib import Path
 from torch.utils.data import DataLoader
 import torch
+import numpy as np
 from tqdm import tqdm
 
 from hierulz.datasets import get_dataset
-from hierulz.hierarchy import load_hierarchy, Hierarchy
 from hierulz.models import load_model
 from hierulz.utils import save_pickle
 
@@ -13,42 +14,56 @@ from hierulz.utils import save_pickle
 def parse_args():
     parser = argparse.ArgumentParser(description="Run inference with hierarchical models")
     parser.add_argument('--dataset', required=True, help='Name of the dataset to use, either tieredimagenet or inat19')
-    parser.add_argument('--config_model', required=True, help="json file with model configuration")
-
+    parser.add_argument('--config_model', required=True, help="Path to JSON config file with model configuration")
     parser.add_argument('--split', default='test', help='Dataset split to use for inference (e.g., "test", "val")')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for inference')
     parser.add_argument('--blurr_level', type=float, default=None)
-
     parser.add_argument('--gpu', type=int, default=0, help='GPU device index to use for inference, if available')
-
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
 
+    # Load model configuration from JSON
+    with open(args.config_model, 'r') as f:
+        config = json.load(f)
+
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
-    dataset = get_dataset(dataset=args.dataset, split=args.split, blurr_level=args.blurr_level)
+    transforms = config.get('transforms', None)
+    dataset = get_dataset(dataset=args.dataset, transforms=transforms, split=args.split, blurr_level=args.blurr_level)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 
-    model = load_model(args.config_model)
-        
-    probas, labels = [], []
+    model = load_model(config=config, dataset_name=args.dataset)
+    model.to(device)
     model.eval()
+
+    probas, labels = [], []
     with torch.no_grad():
-        for images, target in tqdm(dataloader):
+        for images, target in tqdm(dataloader, desc="Running inference"):
             images = images.to(device)
-            output = model.infer_on_batch(images)
-            probas.append(output.cpu())
-            labels.append(target)
+            output = model(images)
+            probas.append(output.cpu().numpy())
+            labels.append(target.numpy())
 
-    save_dir = os.path.join('results', args.dataset, args.config_model['model_name'])
-    os.makedirs(save_dir, exist_ok=True)
-    suffix = f'_blurr_{args.blurr_level}' if args.blurr_level else ''
+    probas = np.concatenate(probas, axis=0)
+    labels = np.concatenate(labels, axis=0)
 
-    save_pickle(probas, os.path.join(save_dir, f'probas_{args.split}{suffix}.pkl'))
-    save_pickle(labels, os.path.join(save_dir, f'labels_{args.split}{suffix}.pkl'))
+    # --- Improved saving logic ---
+    model_name = config.get('model_name', 'unnamed_model')
+    suffix = f"_blurr_{args.blurr_level}" if args.blurr_level is not None else ''
+    save_dir = Path('results') / args.dataset / model_name
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    probas_path = save_dir / f'probas_{args.split}{suffix}.pkl'
+    labels_path = save_dir / f'labels_{args.split}{suffix}.pkl'
+
+    save_pickle(probas, probas_path)
+    save_pickle(labels, labels_path)
+
+    print(f"Saved probabilities to: {probas_path}")
+    print(f"Saved labels to:       {labels_path}")
 
 
 if __name__ == '__main__':

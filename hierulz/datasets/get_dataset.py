@@ -1,19 +1,41 @@
-# get_dataset(dataset=args.dataset, split=args.split, blurr_level=args.blurr_level)
+from torchvision import transforms
+
 from hierulz.datasets.dataset import HierarchicalDataset
 
 
-def get_dataset(dataset, split='test', transform=None, blurr_level=None, kernel_size=61):
+def get_default_transforms(dataset: str):
     """
-    Get a dataset for inference.
+    Return default transforms for a given dataset.
+    """
+    if dataset.lower() == 'tieredimagenet':
+        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+    elif dataset.lower() == 'inat19':
+        mean, std = [0.454, 0.474, 0.367], [0.237, 0.230, 0.249]
+    else:
+        raise ValueError(f"Unsupported dataset '{dataset}'")
+
+    return transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std),
+    ])
+
+def get_dataset(dataset: str, split: str = 'test', transform=None, blurr_level=None):
+    """
+    Load a hierarchical dataset for inference.
 
     Args:
-        dataset (str): Name of the dataset to use, either 'tieredimagenet' or 'inat19'.
-        split (str): Dataset split to use for inference (e.g., 'test', 'val').
-        transform (str)
-        blurr_level (float, optional): Sigma value for Gaussian blur. If None, no blur is applied.
+        dataset (str): Name of the dataset to use ('tieredimagenet' or 'inat19').
+        split (str): Which split to load ('train', 'val', 'test').
+        transform (Callable, optional): Transform pipeline. If None, default is used.
+        blurr_level (float, optional): Gaussian blur sigma. If None, no blur applied.
 
     Returns:
-        HierarchicalDataset: The dataset object.
+        HierarchicalDataset: Initialized dataset.
     """
     root = f'data/datasets/{dataset}/{split}'
-    return HierarchicalDataset(root=root, blurr_level=blurr_level)
+
+    if transform is None:
+        transform = get_default_transforms(dataset)
+
+    return HierarchicalDataset(root=root, transform=transform, blurr_level=blurr_level)
