@@ -18,4 +18,5 @@ def get_metric(metric_name, **kwargs):
     """Get metric class from registry."""
     if metric_name not in METRIC_REGISTRY:
         raise ValueError(f"Unknown metric: {metric_name}")
+    
     return METRIC_REGISTRY[metric_name](**kwargs)

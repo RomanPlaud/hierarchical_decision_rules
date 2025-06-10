@@ -79,7 +79,7 @@ def _compute_delta(self, probas_nodes):
 
         return delta
 
-def decode(self, probas_nodes):
+def _decode_helper(self, probas_nodes):
         """
         Decode the predicted probabilities into a binary matrix of shape (n_samples, n_nodes).
         """
@@ -101,4 +101,17 @@ def decode(self, probas_nodes):
                 if value_pred > value_pred_max:
                     value_pred_max = value_pred
                     predictions_opts[i] = prediction_i
+        return predictions_opts
+
+def decode(self, probas_nodes: np.ndarray, batch_size=100) -> np.ndarray:
+        """
+        Decode node-wise predictions to binary vectors.
+        """
+        n_samples = probas_nodes.shape[0]
+        predictions_opts = np.zeros_like(probas_nodes, dtype=int)
+
+        for start in range(0, n_samples, batch_size):
+            end = min(start + batch_size, n_samples)
+            predictions_opts[start:end] = self._decode_helper(probas_nodes[start:end])
+
         return predictions_opts

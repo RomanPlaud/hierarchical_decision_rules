@@ -1,10 +1,12 @@
 from .base_metric import Metric
 import numpy as np
+import pickle
+
 
 class Leaf2LeafMetric(Metric):
-    def __init__(self, hierarchy, cost_matrix):
+    def __init__(self, hierarchy, cost_matrix_path):
         super().__init__(hierarchy)
-        self.cost_matrix = cost_matrix
+        self.cost_matrix = _load_cost_matrix(cost_matrix_path)
     
     def metric(self, y_true, y_pred):
         if not self.check_if_y_pred_is_a_single_leaf(y_pred):
@@ -21,7 +23,18 @@ class Leaf2LeafMetric(Metric):
     def brute_force_decode(self, p_nodes: np.ndarray) -> np.ndarray:
         all_candidates = self.hierarchy.leaf_events.copy()
         return self._helper_brute_force(p_nodes, all_candidates)
-
+    
+    def _load_cost_matrix(self, cost_matrix_path: str) -> np.ndarray:
+        """
+        Load the cost matrix from a pkl file.
+        :param cost_matrix_path: Path to the cost matrix file.
+        :return: Cost matrix as a numpy array.
+        """
+        with open(cost_matrix_path, 'rb') as f:
+            cost_matrix = pickle.load(f)
+        if not isinstance(cost_matrix, np.ndarray):
+            raise ValueError("Cost matrix must be a numpy array.")
+        return cost_matrix
     
     def _helper_brute_force(self, p_nodes: np.ndarray, candidates: np.ndarray) -> np.ndarray:
         """

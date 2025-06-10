@@ -191,7 +191,13 @@ class Hierarchy:
         compute self.probas_nodes of shape (n_samples, n_nodes),
         where each node's probability is the sum of its leaf descendants'.
         """
-        if probas_leaves.shape[1] != self.n_leaves:
+        if probas_leaves.shape[1] == self.n_nodes:
+            # print a warning if probas_leaves has the same shape as self.n_nodes
+            print("Warning: probas_leaves has the same shape as n_nodes. "
+                  "Assuming it is already in the correct format.")
+            self.probas_nodes = probas_leaves
+            return self.probas_nodes
+        elif probas_leaves.shape[1] != self.n_leaves:
             raise ValueError(
                 f"Probas shape mismatch: got {probas_leaves.shape[1]}, "
                 f"expected number of columns = {self.n_leaves}"

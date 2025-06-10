@@ -58,6 +58,25 @@ class Metric(ABC):
         # Finally, do the weighted sum over the true‐event probabilities
         return (p_leaves_true * values).sum(axis=1)
     
+    def compute_metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Compute the average metric value for a batch of true and predicted event vectors.
+        :param y_true: True event vectors of shape (n_samples, n_nodes).
+        :param y_pred: Predicted event vectors of shape (n_samples, n_nodes).
+        :return: Average metric value.
+        """
+        if y_true.shape != y_pred.shape:
+            raise ValueError("y_true and y_pred must have the same shape.")
+        
+        n_samples = y_true.shape[0]
+        total_metric = 0.0
+        
+        for i in range(n_samples):
+            total_metric += self.metric(y_true[i], y_pred[i])
+        
+        return total_metric / n_samples
+    
+    
     def check_if_y_pred_is_a_single_node(self, y_pred):
         """
         Check if the prediction is for a single node.
