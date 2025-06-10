@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class HierarchicalModel:
+class HierarchicalModel(nn.Module):
     """
     A class to wrap a base model for hierarchical tasks, allowing post hoc
     modification of its classifier layer (e.g., pruning outputs).
@@ -15,7 +15,9 @@ class HierarchicalModel:
         Args:
             model (nn.Module): The base model to wrap. It should contain a classifier layer.
         """
+        super(HierarchicalModel, self).__init__()
         self.model = model
+        self.classifier_layer = self._find_last_linear_layer()
         
 
     def _find_last_linear_layer(self) -> nn.Linear:

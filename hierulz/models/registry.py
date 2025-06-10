@@ -32,6 +32,4 @@ def get_pretrained_model(model_name: str):
         raise ValueError(f"Unknown model '{model_name}'. Available: {list(MODEL_REGISTRY)}")
 
     constructor, weights_cls = MODEL_REGISTRY[model_name]
-    weights = weights_cls.IMAGENET1K_V1
-    model = constructor(weights=weights)
-    return model
+    return constructor, weights_cls

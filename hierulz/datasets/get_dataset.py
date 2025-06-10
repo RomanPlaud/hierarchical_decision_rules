@@ -3,11 +3,11 @@ from torchvision import transforms
 from hierulz.datasets.dataset import HierarchicalDataset
 
 
-def get_default_transforms(dataset: str):
+def get_default_transform(dataset: str):
     """
     Return default transforms for a given dataset.
     """
-    if dataset.lower() == 'tieredimagenet':
+    if (dataset.lower() == 'tieredimagenet') or (dataset.lower() == 'tieredimagenet_tiny'):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
     elif dataset.lower() == 'inat19':
         mean, std = [0.454, 0.474, 0.367], [0.237, 0.230, 0.249]
@@ -36,6 +36,6 @@ def get_dataset(dataset: str, split: str = 'test', transform=None, blurr_level=N
     root = f'data/datasets/{dataset}/{split}'
 
     if transform is None:
-        transform = get_default_transforms(dataset)
+        transform = get_default_transform(dataset)
 
     return HierarchicalDataset(root=root, transform=transform, blurr_level=blurr_level)

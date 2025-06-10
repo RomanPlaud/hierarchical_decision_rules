@@ -2,6 +2,12 @@ from .base_metric import Metric
 import numpy as np
 
 class HammingLoss(Metric):
+    def __init__(self, hierarchy):
+        """
+        Initialize the Hamming loss metric.
+        :param hierarchy: The hierarchy of labels.
+        """
+        super().__init__(hierarchy)
     def metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Compute the Hamming loss between the true and predicted event vectors.

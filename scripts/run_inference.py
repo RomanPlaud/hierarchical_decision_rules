@@ -5,10 +5,16 @@ from torch.utils.data import DataLoader
 import torch
 import numpy as np
 from tqdm import tqdm
+import pickle as pkl
+
+import sys
+sys.path.append('.')  # or the absolute path to the project root
+
 
 from hierulz.datasets import get_dataset
 from hierulz.models import load_model
-from hierulz.utils import save_pickle
+
+
 
 
 def parse_args():
@@ -27,15 +33,15 @@ def main():
 
     # Load model configuration from JSON
     with open(args.config_model, 'r') as f:
-        config = json.load(f)
+        config_model = json.load(f)
 
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
-    transforms = config.get('transforms', None)
-    dataset = get_dataset(dataset=args.dataset, transforms=transforms, split=args.split, blurr_level=args.blurr_level)
+    transform = config_model.get('transform', None)
+    dataset = get_dataset(dataset=args.dataset, split=args.split, transform=transform, blurr_level=args.blurr_level)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 
-    model = load_model(config=config, dataset_name=args.dataset)
+    model = load_model(config_model=config_model)
     model.to(device)
     model.eval()
 
@@ -51,7 +57,7 @@ def main():
     labels = np.concatenate(labels, axis=0)
 
     # --- Improved saving logic ---
-    model_name = config.get('model_name', 'unnamed_model')
+    model_name = config_model.get('model_name', 'unnamed_model')
     suffix = f"_blurr_{args.blurr_level}" if args.blurr_level is not None else ''
     save_dir = Path('results') / args.dataset / model_name
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -59,8 +65,8 @@ def main():
     probas_path = save_dir / f'probas_{args.split}{suffix}.pkl'
     labels_path = save_dir / f'labels_{args.split}{suffix}.pkl'
 
-    save_pickle(probas, probas_path)
-    save_pickle(labels, labels_path)
+    pkl.dump(probas, open(probas_path, 'wb'))
+    pkl.dump(labels, open(labels_path, 'wb'))
 
     print(f"Saved probabilities to: {probas_path}")
     print(f"Saved labels to:       {labels_path}")

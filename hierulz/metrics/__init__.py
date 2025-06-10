@@ -4,3 +4,5 @@ from .mistake_severity import MistakeSeverity
 from .node2leaf_metric import Node2LeafMetric
 from .leaf2leaf_metric import Leaf2LeafMetric
 from .hf_beta_score import hFBetaScore
+
+from .registry import get_metric
