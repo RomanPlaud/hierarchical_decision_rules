@@ -1,7 +1,7 @@
 import networkx as nx
 import numpy as np
 
-from utils import initialize_hierarchy_from_dico
+from .utils import initialize_hierarchy_from_dico
 
 class Hierarchy:
     def __init__(self, hierarchy_dico_idx):
@@ -146,8 +146,11 @@ class Hierarchy:
 
         def recurse(lowest_ancestor, node):
             non_root_lowest_ancestor[node] = lowest_ancestor
-            for child in self.hierarchy_dico_idx[node]:
-                recurse(lowest_ancestor, child)
+            if node in self.leaves_idx:
+                return
+            else:
+                for child in self.hierarchy_dico_idx[node]:
+                    recurse(lowest_ancestor, child)
 
         for child in self.hierarchy_dico_idx[self.root_idx]:
             recurse(child, child)
@@ -208,14 +211,14 @@ class Hierarchy:
 
         def assign_proba_rec(node):
             if node in self.leaves_idx:
-                node_prob = probas_leaves[:, self.leaf2i[node]]
+                node_prob = probas_leaves[:, node]
                 self.probas_nodes[:, node] = node_prob
                 return node_prob
-            children_sum = sum(assign_proba_rec(child) for child in self.hierarchy_dico[node])
+            children_sum = sum(assign_proba_rec(child) for child in self.hierarchy_dico_idx[node])
             self.probas_nodes[:, node] = children_sum
             return children_sum
 
-        assign_proba_rec(self.root)
+        assign_proba_rec(self.root_idx)
         return self.probas_nodes
 
 
