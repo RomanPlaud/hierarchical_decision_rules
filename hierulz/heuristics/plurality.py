@@ -14,12 +14,12 @@ class Plurality(Heuristic):
         whose probability is greater than the maximum probability of all of its non-ancestor node.
         """
         def decode_rec(node, cand, p, maxi):
-            if not (node in self.hierarchy_dico.keys()):
+            if not (node in self.hierarchy.hierarchy_dico_idx.keys()):
                 cand[node] = 1
                 return cand
             else :
                 cand[node] = 1
-                children = self.hierarchy_dico[node]
+                children = self.hierarchy.hierarchy_dico_idx[node]
                 if len(children) == 1:
                     maxi_node = children[0]
                     decode_rec(maxi_node, cand, p, maxi)

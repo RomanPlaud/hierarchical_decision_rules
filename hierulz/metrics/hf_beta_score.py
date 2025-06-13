@@ -13,105 +13,112 @@ class hFBetaScore(Metric):
         self.beta = beta
         self.q_min_beta = self._find_constants()
 
-def metric(self, y_true : np.ndarray, y_pred : np.ndarray) -> float:
-    tp = np.sum(y_true*y_pred)
-    fp = np.sum(y_pred*(1-y_true))
-    fn = np.sum((1-y_pred)*y_true)
-
-    pr = tp/(tp+fp)
-    re = tp/(tp+fn)
-    if pr+re == 0:
-        return 0
-    else:
-        return (1+self.beta**2)*pr*re/((self.beta**2)*pr+re)
-
-def recall(y_true : np.ndarray, y_pred : np.ndarray) -> float:
+    def metric(self, y_true : np.ndarray, y_pred : np.ndarray) -> float:
         tp = np.sum(y_true*y_pred)
+        fp = np.sum(y_pred*(1-y_true))
         fn = np.sum((1-y_pred)*y_true)
-        if tp+fn == 0:
+
+        pr = tp/(tp+fp)
+        re = tp/(tp+fn)
+        if pr+re == 0:
             return 0
         else:
-            return tp/(tp+fn)
-    
-def precision(y_true : np.ndarray, y_pred : np.ndarray) -> float:
-    tp = np.sum(y_true*y_pred)
-    fp = np.sum(y_pred*(1-y_true))
-    if tp+fp == 0:
-        return 0
-    else:
-        return tp/(tp+fp)
+            return (1+self.beta**2)*pr*re/((self.beta**2)*pr+re)
 
-def _find_constants(self):
-    """
-    Computes the constants q_max^C(n)
-    """
-    q_min_beta = 1 / (1 + (self.beta)**2 * (self.hierarchy.depth_max_descendants + 1))
-    return q_min_beta
-    
-
-def _compute_delta(self, probas_nodes):
-        """
-        Compute delta tensor of shape (n_samples, k_max+1, n_nodes), where:
-        - k_max = max over samples of (# nodes with prob >= q_min_beta[n]),
-        - ∆^β_k(n) = ∑_l∈L(n) p(l) * (1+β²) / [k + β²(d(l)+1)]
-
-        Args:
-            probas_nodes (ndarray): shape (n_samples, n_nodes), predicted probabilities.
-
-        Returns:
-            delta (ndarray): shape (n_samples, k_max+1, n_nodes)
-        """
-        k_max = np.max(np.sum(probas_nodes >= self.q_min_beta, axis=1))
-        n_samples = probas_nodes.shape[0]
-        delta = np.zeros((n_samples, k_max + 1, self.n_nodes))
-
-        def recurse(node, depth, k):
-            if node in self.hierarchy.leaves_idx:
-                weight = (1 + self.beta ** 2) / (k + (self.beta ** 2) * (depth + 1))
-                dval = probas_nodes[:, node] * weight
+    def recall(y_true : np.ndarray, y_pred : np.ndarray) -> float:
+            tp = np.sum(y_true*y_pred)
+            fn = np.sum((1-y_pred)*y_true)
+            if tp+fn == 0:
+                return 0
             else:
-                dval = sum(recurse(child, depth + 1, k) for child in self.hierarchy.hierarchy_dico[node])
-            delta[:, k, node] = dval
-            return dval
+                return tp/(tp+fn)
+        
+    def precision(y_true : np.ndarray, y_pred : np.ndarray) -> float:
+        tp = np.sum(y_true*y_pred)
+        fp = np.sum(y_pred*(1-y_true))
+        if tp+fp == 0:
+            return 0
+        else:
+            return tp/(tp+fp)
 
-        for k in range(1, k_max + 1):
-            recurse(self.hierarchy.root_idx, 0, k)
-
-        return delta
-
-def _decode_helper(self, probas_nodes):
+    def _find_constants(self):
         """
-        Decode the predicted probabilities into a binary matrix of shape (n_samples, n_nodes).
+        Computes the constants q_max^C(n)
         """
-        predictions_opts = np.zeros_like(probas_nodes)
-        # all_f = np.zeros(self.hierarchy.n_nodes)
-        delta = self._compute_delta(probas_nodes)
+        q_min_beta = 1 / (1 + (self.beta)**2 * (self.hierarchy.depth_max_descendants + 1))
+        return q_min_beta
+        
 
-        all_candidates = (probas_nodes >= self.q_min_beta)
+    def _compute_delta(self, probas_nodes):
+            """
+            Compute delta tensor of shape (n_samples, k_max+1, n_nodes), where:
+            - k_max = max over samples of (# nodes with prob >= q_min_beta[n]),
+            - ∆^β_k(n) = ∑_l∈L(n) p(l) * (1+β²) / [k + β²(d(l)+1)]
 
-        for i, (cand_i, p_i) in enumerate(zip(all_candidates, probas_nodes)):
-            idx_cand_i = np.where(cand_i)[0]
-            k_max_i = len(idx_cand_i)
-            value_pred_max = 0
-            for k in range(1, k_max_i + 1):
-                prediction_i, value_pred = np.zeros(self.hierarchy.n_nodes), 0
-                top_k_nodes_delta = np.argsort(delta[i, k, idx_cand_i])[-k:]
-                prediction_i[idx_cand_i[top_k_nodes_delta]] = 1
-                value_pred = np.sum(delta[i, k, idx_cand_i[top_k_nodes_delta]])
-                if value_pred > value_pred_max:
-                    value_pred_max = value_pred
-                    predictions_opts[i] = prediction_i
-        return predictions_opts
+            Args:
+                probas_nodes (ndarray): shape (n_samples, n_nodes), predicted probabilities.
 
-def decode(self, probas_nodes: np.ndarray, batch_size=100) -> np.ndarray:
+            Returns:
+                delta (ndarray): shape (n_samples, k_max+1, n_nodes)
+            """
+            k_max = np.max(np.sum(probas_nodes >= self.q_min_beta, axis=1))
+            n_samples = probas_nodes.shape[0]
+            delta = np.zeros((n_samples, k_max + 1, self.hierarchy.n_nodes))
+
+            def recurse(node, depth, k):
+                if node in self.hierarchy.leaves_idx:
+                    weight = (1 + self.beta ** 2) / (k + (self.beta ** 2) * (depth + 1))
+                    dval = probas_nodes[:, node] * weight
+                else:
+                    dval = sum(recurse(child, depth + 1, k) for child in self.hierarchy.hierarchy_dico_idx[node])
+                delta[:, k, node] = dval
+                return dval
+
+            for k in range(1, k_max + 1):
+                recurse(self.hierarchy.root_idx, 0, k)
+
+            return delta
+
+    def _decode_helper(self, probas_nodes):
+            """
+            Decode the predicted probabilities into a binary matrix of shape (n_samples, n_nodes).
+            """
+            predictions_opts = np.zeros_like(probas_nodes)
+            # all_f = np.zeros(self.hierarchy.n_nodes)
+            delta = self._compute_delta(probas_nodes)
+
+            all_candidates = (probas_nodes >= self.q_min_beta)
+
+            for i, (cand_i, p_i) in enumerate(zip(all_candidates, probas_nodes)):
+                idx_cand_i = np.where(cand_i)[0]
+                k_max_i = len(idx_cand_i)
+                value_pred_max = 0
+                for k in range(1, k_max_i + 1):
+                    prediction_i, value_pred = np.zeros(self.hierarchy.n_nodes), 0
+                    top_k_nodes_delta = np.argsort(delta[i, k, idx_cand_i])[-k:]
+                    prediction_i[idx_cand_i[top_k_nodes_delta]] = 1
+                    value_pred = np.sum(delta[i, k, idx_cand_i[top_k_nodes_delta]])
+                    if value_pred > value_pred_max:
+                        value_pred_max = value_pred
+                        predictions_opts[i] = prediction_i
+            return predictions_opts
+
+    def _decode(self, probas_nodes: np.ndarray, batch_size=100) -> np.ndarray:
+            """
+            Decode node-wise predictions to binary vectors.
+            """
+            n_samples = probas_nodes.shape[0]
+            predictions_opts = np.zeros_like(probas_nodes, dtype=int)
+
+            for start in range(0, n_samples, batch_size):
+                end = min(start + batch_size, n_samples)
+                predictions_opts[start:end] = self._decode_helper(probas_nodes[start:end])
+
+            return predictions_opts
+
+    def decode(self, proba_nodes: np.ndarray) -> np.ndarray:
         """
-        Decode node-wise predictions to binary vectors.
+        Given node-wise predictions of shape `(n_samples, n_nodes)`, produce
+        a binary vector for each sample of shape `(n_samples, n_nodes)`.
         """
-        n_samples = probas_nodes.shape[0]
-        predictions_opts = np.zeros_like(probas_nodes, dtype=int)
-
-        for start in range(0, n_samples, batch_size):
-            end = min(start + batch_size, n_samples)
-            predictions_opts[start:end] = self._decode_helper(probas_nodes[start:end])
-
-        return predictions_opts
+        return self._decode(proba_nodes)
