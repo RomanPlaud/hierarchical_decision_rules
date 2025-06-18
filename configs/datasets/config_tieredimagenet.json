@@ -1,0 +1,10 @@
+{
+  "name": "tieredimagenet",
+  "class_to_idx": "data/hierarchies/tieredimagenet/tieredimagenet_class_to_idx.pkl",
+  "hierarchy": "data/hierarchies/tieredimagenet/tieredimagenet_hierarchy.pkl",
+  "corresponding_index": "data/hierarchies/tieredimagenet/tiredimagenet_corresponding_index.pkl",
+  "hierarchy_idx": "data/hierarchies/tieredimagenet/tieredimagenet_hierarchy_idx.pkl",
+  "idx_to_name": "data/hierarchies/tieredimagenet/tieredimagenet_idx_to_name.pkl", 
+  "path_dataset": "data/datasets/tieredimagenet",
+  "path_dataset_test": "data/datasets/tieredimagenet/test"
+}
