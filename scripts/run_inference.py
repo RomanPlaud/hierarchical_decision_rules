@@ -11,8 +11,8 @@ import sys
 sys.path.append('.')  # or the absolute path to the project root
 
 
-from hierulz.datasets import get_dataset
-from hierulz.models import load_model
+from hierulz.datasets import get_dataset, get_default_transform
+from hierulz.models import load_model, get_model_config
 
 
 
@@ -20,7 +20,7 @@ from hierulz.models import load_model
 def parse_args():
     parser = argparse.ArgumentParser(description="Run inference with hierarchical models")
     parser.add_argument('--dataset', required=True, help='Name of the dataset to use, either tieredimagenet or inat19')
-    parser.add_argument('--config_model', required=True, help="Path to JSON config file with model configuration")
+    parser.add_argument('--model_name', required=True, help="Name of the model to load, e.g., 'alexnet', 'resnet18'")
     parser.add_argument('--split', default='test', help='Dataset split to use for inference (e.g., "test", "val")')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for inference')
     parser.add_argument('--blurr_level', type=float, default=None)
@@ -32,12 +32,11 @@ def main():
     args = parse_args()
 
     # Load model configuration from JSON
-    with open(args.config_model, 'r') as f:
-        config_model = json.load(f)
+    config_model = get_model_config(args.model_name)
 
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
-    transform = config_model.get('transform', None)
+    transform = get_default_transform(args.dataset)
     dataset = get_dataset(dataset=args.dataset, split=args.split, transform=transform, blurr_level=args.blurr_level)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 

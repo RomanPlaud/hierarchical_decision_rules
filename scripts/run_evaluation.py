@@ -1,7 +1,6 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+sys.path.append('.')
 
 import argparse
 import json
@@ -9,15 +8,15 @@ import pickle as pkl
 from pathlib import Path
 
 from hierulz.hierarchy import load_hierarchy
-from hierulz.metrics import load_metric
+from hierulz.metrics import load_metric, get_metric_config
 from hierulz.heuristics import get_decoding_method
-
+from hierulz.models import get_model_config
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run evaluation with hierarchical models")
-    parser.add_argument('--config', required=True, help="Path to JSON config file with model configuration")
-    parser.add_argument('--metric_config', required=True, help="Config file of metric to evaluate the model on, e.g., 'accuracy', 'fß_score'")
+    parser.add_argument('--model_name', required=True, help="Path to JSON config file with model configuration")
+    parser.add_argument('--metric_name', required=True, help="Metric to evaluate the model on, e.g., 'accuracy', 'fß_score'")
     parser.add_argument('--decoding_method', required=True, help="Decoding method to use, e.g., 'opt', 'argmax', 'thresholding'")
     parser.add_argument('--path_probas', default=None, help="Path to the directory containing predictions")
     parser.add_argument('--path_save', required=True, help="Path to save the evaluation results")
@@ -26,10 +25,8 @@ def main():
     args = parse_args()
 
     # Load model configuration from JSON
-    with open(args.config, 'r') as f:
-        config_model = json.load(f)
-    if args.metric_config:
-        metric_config = json.loads(args.metric_config)
+    config_model = get_model_config(args.model_name)
+    metric_config = get_metric_config(args.metric_config)
 
     hierarchy = load_hierarchy(config_model['hierarchy_path'])
     metric = load_metric(metric_config['metric_name'], **metric_config.get('kwargs', {}))
