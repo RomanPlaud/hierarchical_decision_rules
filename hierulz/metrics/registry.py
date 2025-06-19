@@ -30,21 +30,9 @@ METRIC_REGISTRY: Dict[str, MetricInfo] = {
 }
 
 
-def load_metric(metric_name: str, dataset_name: str, **kwargs) -> Callable:
+def load_metric(metric_name: str, dataset_name: str) -> Callable:
     """
-    Returns an instance of the specified metric, initialized with kwargs.
-    """
-    hierarchy = load_hierarchy(dataset_name)
-
-    if metric_name not in METRIC_REGISTRY:
-        raise ValueError(f"Unknown metric: '{metric_name}'. Available metrics: {list(METRIC_REGISTRY.keys())}")
-    
-    return METRIC_REGISTRY[metric_name].constructor(hierarchy, **kwargs)
-
-
-def get_metric_config(metric_name: str, dataset_name : str) -> dict:
-    """
-    Loads and returns the JSON configuration for the specified metric.
+    Loads metric config and returns an instance of the specified metric.
     """
     if metric_name not in METRIC_REGISTRY:
         raise ValueError(f"Unknown metric: '{metric_name}'. Available metrics: {list(METRIC_REGISTRY.keys())}")
@@ -55,4 +43,8 @@ def get_metric_config(metric_name: str, dataset_name : str) -> dict:
         raise FileNotFoundError(f"Config file not found for metric '{metric_name}' at: {config_path}")
     
     with open(config_path, 'r') as f:
-        return json.load(f)[dataset_name]
+        config = json.load(f)[dataset_name]
+
+    hierarchy = load_hierarchy(dataset_name)
+    
+    return METRIC_REGISTRY[metric_name].constructor(hierarchy, **config.get('kwargs', {}))

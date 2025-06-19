@@ -16,7 +16,7 @@ import torch
 from hierulz.hierarchy import load_hierarchy
 from hierulz.datasets import get_dataset_config, get_default_transform
 from hierulz.models import get_model_config, load_model
-from hierulz.metrics import get_metric_config, load_metric
+from hierulz.metrics import load_metric
 from hierulz.heuristics import load_heuristic
 
 
@@ -359,8 +359,7 @@ class InterfaceHClassification(QWidget):
             self.beta_controls_container.setVisible(True)
         else:
             self.beta_controls_container.setVisible(False)
-        metric_config = get_metric_config(metric_name, self.config_dataset['name'])  
-        self.metric = load_metric(metric_config['metric_name'], self.config_dataset['name'], **metric_config.get('kwargs', {}))
+        self.metric = load_metric(metric_name, self.config_dataset['name'])
     
         self.decoding_controls_container.setVisible(True)
 

@@ -204,11 +204,11 @@ class Node2LeafMetric(Metric):
                     continue
                 pi_n = self.hierarchy.parent[n]
                 if n in idx_leaf_event:
-                    Mn[n] = np.max(Mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
-                    mn[n] = np.min(mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
+                    Mn[n] = max(Mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
+                    mn[n] = min(mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
                 else:
-                    Mn_bar[n] = np.max(Mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
-                    mn_bar[n] = np.min(mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
+                    Mn_bar[n] = max(Mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
+                    mn_bar[n] = min(mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
                 
         self.q_max = Mn_bar / (Mn_bar + mn)
         self.q_min = mn_bar / (mn_bar + Mn)
@@ -234,12 +234,12 @@ class Node2LeafMetric(Metric):
                     continue
                 pi_n = self.hierarchy.parent[n]
                 if n in idx_leaf_event:
-                    Mn[n] = np.max(Mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
-                    mn[n] = np.min(mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
+                    Mn[n] = max(Mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
+                    mn[n] = min(mn[n], (self.cost_matrix[pi_n, leaf_idx] - self.cost_matrix[n, leaf_idx]))
                 else:
                     if len(np.intersect1d(self.hierarchy.get_ancestors(n), idx_leaf_event)) > 1:
-                        Mn_bar[n] = np.max(Mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
-                        mn_bar[n] = np.min(mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
+                        Mn_bar[n] = max(Mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
+                        mn_bar[n] = min(mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
                 
         self.q_max = Mn_bar / (Mn_bar + mn)
         self.q_min = mn_bar / (mn_bar + Mn)
