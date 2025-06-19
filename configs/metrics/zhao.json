@@ -1,0 +1,14 @@
+{
+ "tieredimagenet": {
+    "metric_name": "Zhao",
+    "kwargs": {
+    "cost_matrix_path": "data/metrics/zhao_tieredimagenet.pkl"
+  }
+ },
+ "inat19": {
+    "metric_name": "Zhao",
+    "kwargs": {
+      "cost_matrix_path": "data/metrics/zhao_inat19.pkl"
+    }
+  }
+}

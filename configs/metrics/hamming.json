@@ -1,0 +1,8 @@
+{
+ "tieredimagenet": {
+    "metric_name": "Hamming Loss"
+ },
+ "inat19": {
+    "metric_name": "Hamming Loss"
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "name": "tieredimagenet",
-  "class_to_idx": "tieredimagenet_class_to_idx.pkl",
-  "hierarchy": "tieredimagenet_hierarchy.pkl",
-  "corresponding_index": "tiredimagenet_corresponding_index.pkl",
-  "hierarchy_idx": "tieredimagenet_hierarchy_idx.pkl",
-  "idx_to_name": "tieredimagenet_idx_to_name.pkl"
-}

@@ -16,6 +16,8 @@ import torch
 from hierulz.hierarchy import load_hierarchy
 from hierulz.datasets import get_dataset_config, get_default_transform
 from hierulz.models import get_model_config, load_model
+from hierulz.metrics import get_metric_config, load_metric
+from hierulz.heuristics import load_heuristic
 
 
 class InterfaceHClassification(QWidget):
@@ -163,8 +165,8 @@ class InterfaceHClassification(QWidget):
 
         self.metric_combo = QComboBox()
         self.metric_combo.addItems([
-            "hF_ß", "Mistake Severity", "Wu-Palmer", "Zhao",
-            "Accuracy", "Hamming Loss", "Node2Leaf", "Leaf2Leaf"
+            " ", "hF_ß", "Mistake Severity", "Wu-Palmer", "Zhao",
+            "Accuracy", "Hamming Loss", "Wu-Palmer", "Zhao"
         ])
         self.metric_combo.currentTextChanged.connect(self._select_metric)
 
@@ -230,9 +232,11 @@ class InterfaceHClassification(QWidget):
         print(f"Dataset selected: {dataset_name}")
         # For example:
         self.config_dataset = get_dataset_config(dataset_name)
-        self.hierarchy = load_hierarchy(self.config_dataset['hierarchy_idx'])
+        self.hierarchy = load_hierarchy(dataset_name)
         self.transform = get_default_transform(dataset_name)
 
+        self.class_to_idx = pkl.load(open(self.config_dataset['class_to_idx'], 'rb'))
+        self.idx_to_name = pkl.load(open(self.config_dataset['idx_to_name'], 'rb'))
 
         self.btn_load.setVisible(True)
         self.image_side_container.setVisible(True)  # Show image side when dataset is selected
@@ -262,50 +266,67 @@ class InterfaceHClassification(QWidget):
         pixmap = QPixmap.fromImage(qimg)
         self.image_label.setPixmap(pixmap)   
 
-    def display_label(self, label):  
-        class_to_idx = pkl.load(open(self.config_dataset['class_to_idx'], 'rb'))
-        idx_to_name = pkl.load(open(self.config_dataset['idx_to_name'], 'rb'))
+    def render_label_path(self, layout, label_ids, idx_to_name, highlight_ids=None, highlight_color="#d4fdd4"):
+        """
+        Render a hierarchy path given a list of label IDs into the provided layout.
+        
+        Args:
+            layout (QVBoxLayout): where to display
+            label_ids (List[int]): list of node IDs in order
+            idx_to_name (dict): maps ID to name
+            highlight_ids (set): optional set of IDs to highlight (e.g. correct prediction)
+            highlight_color (str): background color for highlights
+        """
+        highlight_ids = set(highlight_ids or [])
 
-        label_idx = class_to_idx[label]
-        ancestors = np.where(self.hierarchy.leaf_events[label_idx])[0]
-        ancestors_sorted_depths = sorted(ancestors, key=lambda x: self.hierarchy.depths[x])
-        ancestors_names = [idx_to_name[idx] for idx in ancestors_sorted_depths]
-
-        # clear previous labels
-        while self.hierarchy_layout.count():
-            child = self.hierarchy_layout.takeAt(0)
+        # Clear previous content
+        while layout.count():
+            child = layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
-        for i, label in enumerate(ancestors_names):
-            node_label = QLabel(label)
+        # Display hierarchy
+        for i, node_id in enumerate(label_ids):
+            name = idx_to_name[node_id]
+            is_highlighted = node_id in highlight_ids
+
+            node_label = QLabel(name)
             node_label.setMinimumHeight(30)
             node_label.setMaximumHeight(30)
             node_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            node_label.setStyleSheet("""
-                QLabel {
+            node_label.setStyleSheet(f"""
+                QLabel {{
                     border: 1px solid #333;
                     border-radius: 6px;
                     padding: 2px;
-                    background-color: #f0f0f0;
+                    background-color: {'#f0f0f0' if not is_highlighted else highlight_color};
                     font-size: 10pt;
                     qproperty-alignment: AlignCenter;
-                }
+                }}
             """)
-            self.hierarchy_layout.addWidget(node_label)
+            layout.addWidget(node_label)
 
-            if i < len(ancestors_names) - 1:
+            if i < len(label_ids) - 1:
                 arrow = QLabel("↓")
                 arrow.setMinimumHeight(20)
                 arrow.setMaximumHeight(20)
                 arrow.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
                 arrow.setStyleSheet("font-size: 12pt; color: gray; qproperty-alignment: AlignCenter;")
-                self.hierarchy_layout.addWidget(arrow)
-        self.last_groundtruth_path = ancestors_sorted_depths
+                layout.addWidget(arrow)
+
+    def display_label(self, label):
+        label_idx = self.class_to_idx[label]
+        ancestor_ids = np.where(self.hierarchy.leaf_events[label_idx])[0]
+        ancestor_ids_sorted = sorted(ancestor_ids, key=lambda x: self.hierarchy.depths[x])
+        self.last_groundtruth_path = ancestor_ids_sorted
+
+        # Reuse the general display logic
+        self.render_label_path(self.hierarchy_layout, ancestor_ids_sorted, self.idx_to_name)
+
+        # Set class label on top bar
+        self.class_label.setText(f"Class: {self.idx_to_name[ancestor_ids_sorted[-1]]}")
 
 
-        # Set class label on top bar (optional)
-        self.class_label.setText(f"Class: {ancestors_names[-1]}")
 
     def _apply_blur(self):
         level = self.blur_slider.value() / 10.0
@@ -338,11 +359,34 @@ class InterfaceHClassification(QWidget):
             self.beta_controls_container.setVisible(True)
         else:
             self.beta_controls_container.setVisible(False)
+        metric_config = get_metric_config(metric_name, self.config_dataset['name'])  
+        self.metric = load_metric(metric_config['metric_name'], self.config_dataset['name'], **metric_config.get('kwargs', {}))
     
-    # Your existing logic (if any) can go here
-
         self.decoding_controls_container.setVisible(True)
 
     def _decode_proba(self):
-        self.output_label.setVisible(True)
+        decoding_method = self.decode_combo.currentText()
+        if decoding_method == "Optimal":
+            self.decoding = self.metric
+        else:
+            self.decoding = load_heuristic(decoding_method, self.config_dataset['name'])
+        # Decode predictions
+        # get nodes probas
+        probas_nodes = self.hierarchy.get_probas(self.proba)
+        # Decode predictions
+        y_pred = np.where(self.decoding.decode(probas_nodes))[0]
+        # sort by ascending depth
+        ancestor_ids_sorted = sorted(y_pred, key=lambda x: self.hierarchy.depths[x])
+        
+
+        self.render_label_path(
+            self.prediction_layout,
+            ancestor_ids_sorted,
+            idx_to_name=self.idx_to_name,
+            highlight_ids=self.last_groundtruth_path,  # optional
+            highlight_color="#d4fdd4"  # greenish
+        )
+
+
+        
     

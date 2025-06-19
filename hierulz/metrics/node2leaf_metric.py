@@ -5,7 +5,7 @@ import pickle
 class Node2LeafMetric(Metric):
     def __init__(self, hierarchy, cost_matrix_path):
         super().__init__(hierarchy)
-        self.cost_matrix = _load_cost_matrix(cost_matrix_path)
+        self.cost_matrix = self._load_cost_matrix(cost_matrix_path)
         self._check_hierarchical_constraints()
         self._find_constants()
     
@@ -90,6 +90,11 @@ class Node2LeafMetric(Metric):
             cost_matrix = pickle.load(f)
         if not isinstance(cost_matrix, np.ndarray):
             raise ValueError("Cost matrix must be a numpy array.")
+         # check if can be transposed to match the dimensions of the hierarchy
+        if cost_matrix.shape[0] == self.hierarchy.n_leaves or cost_matrix.shape[1] != self.hierarchy.n_nodes:
+            cost_matrix = cost_matrix.T
+        if cost_matrix.shape[0] != self.hierarchy.n_nodes or cost_matrix.shape[1] != self.hierarchy.n_leaves:
+            raise ValueError(f"Cost matrix shape {cost_matrix.shape} does not match hierarchy dimensions: {self.hierarchy.n_nodes} nodes and {self.hierarchy.n_leaves} leaves.")
         return cost_matrix
 
     

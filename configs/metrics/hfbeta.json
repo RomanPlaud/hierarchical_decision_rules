@@ -1,0 +1,14 @@
+{
+ "tieredimagenet": {
+    "metric_name": "hF_ß",
+    "kwargs": {
+      "beta": 1.0
+  }
+ },
+ "inat19": {
+    "metric_name": "hF_ß",
+    "kwargs": {
+      "beta": 1.0
+    }
+  }
+}

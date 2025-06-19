@@ -1,7 +1,8 @@
 import pickle as pkl
 from .hierarchy import Hierarchy
+from hierulz.datasets import get_dataset_config
 
-def load_hierarchy(path):
+def load_hierarchy(name: str) -> Hierarchy:
     """
     Load a hierarchy from a pickle file.
 
@@ -11,7 +12,8 @@ def load_hierarchy(path):
     Returns:
         dict: The loaded hierarchy.
     """
-    with open(path, 'rb') as f:
+    dataset_config = get_dataset_config(name)
+    with open(dataset_config['hierarchy_idx'], 'rb') as f:
         hierarchy = pkl.load(f)
     
     return Hierarchy(hierarchy)
