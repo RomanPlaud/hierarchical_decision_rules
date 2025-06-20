@@ -299,7 +299,7 @@ class InterfaceHClassification(QWidget):
                     border: 1px solid #333;
                     border-radius: 6px;
                     padding: 2px;
-                    background-color: {'#f0f0f0' if not is_highlighted else highlight_color};
+                    background-color: {'#E48782' if not is_highlighted else highlight_color};
                     font-size: 10pt;
                     qproperty-alignment: AlignCenter;
                 }}
@@ -321,7 +321,7 @@ class InterfaceHClassification(QWidget):
         self.last_groundtruth_path = ancestor_ids_sorted
 
         # Reuse the general display logic
-        self.render_label_path(self.hierarchy_layout, ancestor_ids_sorted, self.idx_to_name)
+        self.render_label_path(self.hierarchy_layout, ancestor_ids_sorted, self.idx_to_name, ancestor_ids_sorted)
 
         # Set class label on top bar
         self.class_label.setText(f"Class: {self.idx_to_name[ancestor_ids_sorted[-1]]}")
@@ -373,9 +373,10 @@ class InterfaceHClassification(QWidget):
         # get nodes probas
         probas_nodes = self.hierarchy.get_probas(self.proba)
         # Decode predictions
-        y_pred = np.where(self.decoding.decode(probas_nodes))[0]
+        y_pred = np.where((self.decoding.decode(probas_nodes))[0])[0]
         # sort by ascending depth
         ancestor_ids_sorted = sorted(y_pred, key=lambda x: self.hierarchy.depths[x])
+        print(f"Decoded path: {ancestor_ids_sorted}")
         
 
         self.render_label_path(

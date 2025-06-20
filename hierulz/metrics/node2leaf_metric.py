@@ -69,10 +69,10 @@ class Node2LeafMetric(Metric):
             q_max_n = self.q_max[n]
 
             # delete node n if proba of n is strictly less than self.q_min(n)
-            all_candidates[:, n] &= (p_nodes[:, n] >= (q_min_n * p_shallowest_common_ancestor[n]) )
+            all_candidates[:, n] &= (p_nodes[:, n] >= (q_min_n * p_shallowest_common_ancestor[:, n]) )
 
             # delete parent node of node n if proba of n is strictly more than self.q_max(n)
-            all_candidates[:, pi_n] &= (p_nodes[:, n] <= (q_max_n * p_shallowest_common_ancestor[n]) )
+            all_candidates[:, pi_n] &= (p_nodes[:, n] <= (q_max_n * p_shallowest_common_ancestor[:, n]) )
 
         return self._helper_brute_force(p_nodes, all_candidates)
     
