@@ -8,4 +8,8 @@
 
 # Install the package in editable mode
 
-```pip install -e .```
+```bash
+git clone https://github.com/RomanPlaud/hierarchical_decision_rules.git
+cd hierulz
+pip install -e .
+```
