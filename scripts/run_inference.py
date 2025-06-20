@@ -13,6 +13,7 @@ sys.path.append('.')  # or the absolute path to the project root
 
 from hierulz.datasets import get_dataset, get_default_transform
 from hierulz.models import load_model, get_model_config
+from hierulz.utils import get_output_paths, save_probas_labels
 
 
 
@@ -32,7 +33,6 @@ def main():
     args = parse_args()
 
     # Load model configuration from JSON
-    config_model = get_model_config(args.model_name)
 
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
@@ -40,13 +40,15 @@ def main():
     dataset = get_dataset(dataset=args.dataset, split=args.split, transform=transform, blurr_level=args.blurr_level)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 
+    config_model = get_model_config(args.model_name)
     model = load_model(config_model=config_model)
     model.to(device)
     model.eval()
 
     probas, labels = [], []
     with torch.no_grad():
-        for images, target in tqdm(dataloader, desc="Running inference"):
+        for images, target in tqdm(dataloader, 
+                                   desc=print(f"Running inference on {args.dataset} [{args.split}] with model from {args.model_name} for blurr level {args.blurr_level}")):
             images = images.to(device)
             output = model(images)
             probas.append(output.cpu().numpy())
@@ -55,20 +57,14 @@ def main():
     probas = np.concatenate(probas, axis=0)
     labels = np.concatenate(labels, axis=0)
 
-    # --- Improved saving logic ---
-    model_name = config_model.get('model_name', 'unnamed_model')
-    suffix = f"_blurr_{args.blurr_level}" if args.blurr_level is not None else ''
-    save_dir = Path('results') / args.dataset / model_name
-    save_dir.mkdir(parents=True, exist_ok=True)
+    probas_path, labels_path = get_output_paths(
+        dataset=args.dataset,
+        model_name=args.model_name,
+        blurr_level=args.blurr_level,
+        split=args.split
+    )
 
-    probas_path = save_dir / f'probas_{args.split}{suffix}.pkl'
-    labels_path = save_dir / f'labels_{args.split}{suffix}.pkl'
-
-    pkl.dump(probas, open(probas_path, 'wb'))
-    pkl.dump(labels, open(labels_path, 'wb'))
-
-    print(f"Saved probabilities to: {probas_path}")
-    print(f"Saved labels to:       {labels_path}")
+    save_probas_labels(probas, labels, probas_path, labels_path)
 
 
 if __name__ == '__main__':
