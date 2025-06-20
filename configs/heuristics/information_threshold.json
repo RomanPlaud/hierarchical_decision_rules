@@ -1,0 +1,6 @@
+{
+    "heuristic": "information_threshold",
+    "kwargs": {
+        "threshold": 0.0
+    }
+}

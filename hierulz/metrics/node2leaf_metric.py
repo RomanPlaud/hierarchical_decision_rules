@@ -1,11 +1,16 @@
 from .base_metric import Metric
 import numpy as np
 import pickle
+import sys
+infty = sys.float_info.max
 
 class Node2LeafMetric(Metric):
-    def __init__(self, hierarchy, cost_matrix_path):
+    def __init__(self, hierarchy, cost_matrix):
         super().__init__(hierarchy)
-        self.cost_matrix = self._load_cost_matrix(cost_matrix_path)
+        if isinstance(cost_matrix, str):
+            self.cost_matrix = self._load_cost_matrix(cost_matrix)
+        elif isinstance(cost_matrix, np.ndarray):
+            self.cost_matrix = cost_matrix        
         self._check_hierarchical_constraints()
         self._find_constants()
     
@@ -191,8 +196,8 @@ class Node2LeafMetric(Metric):
         for strictly reasonable cost matrix.
         Check Lemma (4.3) from the paper
         """
-        Mn_bar = np.inf*np.ones(self.hierarchy.n_nodes)
-        Mn = np.inf*np.ones(self.hierarchy.n_nodes)
+        Mn_bar = infty*np.ones(self.hierarchy.n_nodes)
+        Mn = infty*np.ones(self.hierarchy.n_nodes)
         mn = np.zeros(self.hierarchy.n_nodes)
         mn_bar = np.zeros(self.hierarchy.n_nodes)
 
@@ -210,10 +215,9 @@ class Node2LeafMetric(Metric):
                     Mn_bar[n] = max(Mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
                     mn_bar[n] = min(mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
                 
-        self.q_max = Mn_bar / (Mn_bar + mn)
-        self.q_min = mn_bar / (mn_bar + Mn)
-        self.q_max[np.isinf(self.q_max)] = 1
-        self.q_min[np.isinf(self.q_min)] = 0
+        self.q_max = np.divide(Mn_bar, Mn_bar + mn, out=np.ones_like(Mn_bar), where=(Mn_bar + mn) != 0)
+        self.q_min = np.divide(mn_bar, mn_bar + Mn, out=np.zeros_like(mn_bar), where=(mn_bar + Mn) != 0)
+
 
     def _find_constants_softly_reasonable(self):
         """
@@ -221,8 +225,8 @@ class Node2LeafMetric(Metric):
         for strictly reasonable cost matrix.
         Check Proposition E.6 (Appendix) from the paper
         """
-        Mn_bar = np.inf*np.ones(self.hierarchy.n_nodes)
-        Mn = np.inf*np.ones(self.hierarchy.n_nodes)
+        Mn_bar = infty*np.ones(self.hierarchy.n_nodes)
+        Mn = infty*np.ones(self.hierarchy.n_nodes)
         mn = np.zeros(self.hierarchy.n_nodes)
         mn_bar = np.zeros(self.hierarchy.n_nodes)
 
@@ -241,8 +245,7 @@ class Node2LeafMetric(Metric):
                         Mn_bar[n] = max(Mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
                         mn_bar[n] = min(mn_bar[n], (self.cost_matrix[n, leaf_idx] - self.cost_matrix[pi_n, leaf_idx]))
                 
-        self.q_max = Mn_bar / (Mn_bar + mn)
-        self.q_min = mn_bar / (mn_bar + Mn)
-        self.q_max[np.isinf(self.q_max)] = 1
-        self.q_min[np.isinf(self.q_min)] = 0
+        self.q_max = np.divide(Mn_bar, Mn_bar + mn, out=np.ones_like(Mn_bar), where=(Mn_bar + mn) != 0)
+        self.q_min = np.divide(mn_bar, mn_bar + Mn, out=np.zeros_like(mn_bar), where=(mn_bar + Mn) != 0)
+
 

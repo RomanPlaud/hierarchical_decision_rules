@@ -1,8 +1,0 @@
-{
-    "model_name": "alexnet",
-    "pretrained": true,
-    "blurr_level": 0.0,
-    "metric": "Accuracy",
-    "decoding_method": "Optimal",
-    "score": 0.0
-}

@@ -4,9 +4,14 @@ import pickle
 
 
 class Leaf2LeafMetric(Metric):
-    def __init__(self, hierarchy, cost_matrix_path):
+    def __init__(self, hierarchy, cost_matrix):
         super().__init__(hierarchy)
-        self.cost_matrix = _load_cost_matrix(cost_matrix_path)
+        # check if cost_matrix_path is a string or a path
+        if isinstance(cost_matrix, str):
+            self.cost_matrix = self._load_cost_matrix(cost_matrix)
+        elif isinstance(cost_matrix, np.ndarray):
+            self.cost_matrix = cost_matrix
+        
     
     def metric(self, y_true, y_pred):
         if not self.check_if_y_pred_is_a_single_leaf(y_pred):

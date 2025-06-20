@@ -2,7 +2,7 @@ from .base_heuristic import Heuristic
 import numpy as np
 
 class InformationThreshold(Heuristic):
-    def __init__(self, hierarchy, threshold):
+    def __init__(self, hierarchy, threshold=0.0):
         """
         Initialize the InformationThreshold heuristic with a hierarchy object and a threshold.
         """

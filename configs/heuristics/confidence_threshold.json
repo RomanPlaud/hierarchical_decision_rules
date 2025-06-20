@@ -1,0 +1,6 @@
+{
+    "heuristic": "confidence_threshold",
+    "kwargs": {
+        "threshold": 0.5
+    }
+}

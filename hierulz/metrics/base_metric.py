@@ -83,6 +83,6 @@ class Metric(ABC):
         This is used to ensure that the node metric can be computed correctly.
         """
 
-        depths_pred = self.hierarchy.depths * y_pred
+        depths_pred = (self.hierarchy.depths * y_pred).astype(int)
 
         return (np.bincount(depths_pred)[1:].max() == 1)

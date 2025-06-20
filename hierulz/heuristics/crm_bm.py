@@ -22,11 +22,9 @@ class CRM_BM(Heuristic):
         for i, p_i in enumerate(proba_nodes):
             if np.max(p_i) >= 0.5:
                 # Get the index of the maximum probability
-                node_predicted = np.argmax(p_i)
+                node_predicted = np.argmax(p_i[self.hierarchy.leaves_idx])
                 # Get the leaf nodes that are ancestors of the max_idx
-                ancestors = self.hierarchy.leaf_events[node_predicted]
-                # Set the corresponding indices in full_predictions to 1
-                full_predictions[i, ancestors] = 1
+                full_predictions[i] = self.hierarchy.leaf_events[node_predicted]
             else:
                 full_predictions[[i]] = self.metric.decode(p_i[None])
         return full_predictions
@@ -35,12 +33,14 @@ class CRM_BM(Heuristic):
         """
         Get the distance matrix for all pairs of leaf nodes in the hierarchy.
         """
+        graph_undirected = self.hierarchy.hierarchy_graph.copy()
+        graph_undirected = graph_undirected.to_undirected()
         cost_matrix = np.zeros((self.hierarchy.n_leaves, self.hierarchy.n_leaves))
         for i, leaf1 in enumerate(self.hierarchy.leaves_idx):
             for j, leaf2 in enumerate(self.hierarchy.leaves_idx):
                 if i != j:
                     dist_ij = nx.shortest_path_length(
-                        self.hierarchy.hierarchy_graph, source=leaf1, target=leaf2)
+                        graph_undirected, source=leaf1, target=leaf2)
                     cost_matrix[i, j], cost_matrix[j, i] = dist_ij, dist_ij
         return cost_matrix
                     

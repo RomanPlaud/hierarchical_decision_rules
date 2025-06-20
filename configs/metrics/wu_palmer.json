@@ -2,13 +2,13 @@
  "tieredimagenet": {
     "metric_name": "Wu-Palmer",
     "kwargs": {
-    "cost_matrix_path": "data/metrics/wu-palmer_tieredimagenet.pkl"
+    "cost_matrix": "data/metrics/wu-palmer_tieredimagenet.pkl"
   }
  },
  "inat19": {
     "metric_name": "Wu-Palmer",
     "kwargs": {
-      "cost_matrix_path": "data/metrics/wu-palmer_inat19.pkl"
+      "cost_matrix": "data/metrics/wu-palmer_inat19.pkl"
     }
   }
 }

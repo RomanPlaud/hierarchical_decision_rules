@@ -30,13 +30,17 @@ HEURISTIC_REGISTRY: Dict[str, HeuristicInfo] = {
     'Argmax leaves': HeuristicInfo(Accuracy, Path('configs/heuristics/argmax_leaves.json'))
 }
 
-def load_heuristic(heuristic_name: str, dataset_name: str, **kwargs) -> Callable:
+def load_heuristic(heuristic_name: str, dataset_name: str) -> Callable:
     """
     Returns an instance of the specified heuristic, initialized with kwargs.
     """
     hierarchy = load_hierarchy(dataset_name)
+    # load config for the heuristic
+    heuristic_config_path = HEURISTIC_REGISTRY[heuristic_name].config_path
+    with open(heuristic_config_path, 'r') as f:
+        heuristic_config = json.load(f)
 
     if heuristic_name not in HEURISTIC_REGISTRY:
         raise ValueError(f"Unknown heuristic: '{heuristic_name}'. Available heuristics: {list(HEURISTIC_REGISTRY.keys())}")
     
-    return HEURISTIC_REGISTRY[heuristic_name].constructor(hierarchy, **kwargs)
+    return HEURISTIC_REGISTRY[heuristic_name].constructor(hierarchy, **heuristic_config.get('kwargs', {}))

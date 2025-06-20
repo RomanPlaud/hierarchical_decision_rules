@@ -20,8 +20,7 @@ class HiE(Heuristic):
         full_predictions = np.zeros_like(proba_nodes)
         
         for i, node_predicted in enumerate(predicted_nodes):
-            ancestors = self.hierarchy.leaf_events[node_predicted]
+            full_predictions[i] = self.hierarchy.leaf_events[node_predicted]
             # Set the corresponding indices in full_predictions to 1
-            full_predictions[i, ancestors] = 1
 
         return full_predictions

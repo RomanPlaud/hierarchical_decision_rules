@@ -1,14 +1,10 @@
 #!/bin/bash
 
 # Define models, metrics, and decoding methods
-models=("alexnet" "convnext_tiny" "densenet121" "efficientnet_vs_2" "inception_v3" "resnet18" "swin_v2_t" "vgg11" "vit_b16")
-models=("alexnet")
+models=("alexnet" "convnext_tiny" "densenet121" "inception_v3" "resnet18" "swin_v2_t" "vgg11" "efficientnet_v2_s" "vit_b_16")
 metrics=("Accuracy" "Hamming Loss" "hF_1" "hF_2" "hF_0_5" "Mistake Severity" "Wu-Palmer" "Zhao")
-metrics=("Accuracy")
-decodings=("Optimal" "Thresholding 0.5" "(Karthik et al., 2021)" "Exp. Information" "Hie-Self (Jain et al., 2023)" "information_threshold" "Plurality" "Top-down argmax" "Argmax leaves")
-decodings=("Optimal")
+decodings=("Optimal" "Thresholding 0.5" "(Karthik et al., 2021)" "Exp. Information" "Hie-Self (Jain et al., 2023)" "Plurality" "Top-down argmax" "Argmax leaves")
 blurr_levels=$(seq 0 10)
-blurr_levels=("0")
 
 # Settings
 dataset="tieredimagenet"

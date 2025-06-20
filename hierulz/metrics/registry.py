@@ -26,7 +26,7 @@ METRIC_REGISTRY: Dict[str, MetricInfo] = {
     'hF_ß': MetricInfo(hFBetaScore, Path('configs/metrics/hf1.json')),
     'Mistake Severity': MetricInfo(MistakeSeverity, Path('configs/metrics/mistake_severity.json')),
     'Wu-Palmer': MetricInfo(Node2LeafMetric, Path('configs/metrics/wu_palmer.json')),
-    'Zhao': MetricInfo(Leaf2LeafMetric, Path('configs/metrics/zhao.json')),
+    'Zhao': MetricInfo(Node2LeafMetric, Path('configs/metrics/zhao.json')),
     'hF_1': MetricInfo(hFBetaScore, Path('configs/metrics/hf1.json')),
     'hF_2': MetricInfo(hFBetaScore, Path('configs/metrics/hf2.json')),
     'hF_0_5': MetricInfo(hFBetaScore, Path('configs/metrics/hf0_5.json')),

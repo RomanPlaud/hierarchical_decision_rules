@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class HierarchicalModel(nn.Module):
@@ -66,4 +67,8 @@ class HierarchicalModel(nn.Module):
         Returns:
             torch.Tensor: Output logits.
         """
-        return self.model(x)
+        logits = self.model(x)
+        # apply softmax to logits
+        probas = F.softmax(logits, dim=1)
+        return probas
+
