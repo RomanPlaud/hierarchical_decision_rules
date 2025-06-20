@@ -2,9 +2,13 @@
 name = "hierulz"
 version = "0.1.0"
 description = "Hierarchical decision rule models"
-authors = [{name = "Your Name"}]
+authors = [{name = "Roman Plaud"}]
 dependencies = []
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hierulz"]
