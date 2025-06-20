@@ -6,14 +6,5 @@
 
 ## Installation
 
-We recommend using a Conda environment for isolation:
-
-```bash
-# Create a new Conda environment 
-conda create -n hierulz-env
-
-# Activate the environment
-conda activate hierulz-env
-
 # Install the package in editable mode
 pip install -e .
