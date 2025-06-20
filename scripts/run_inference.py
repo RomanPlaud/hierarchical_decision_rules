@@ -8,7 +8,6 @@ from tqdm import tqdm
 import pickle as pkl
 
 import sys
-sys.path.append('.')  # or the absolute path to the project root
 
 
 from hierulz.datasets import get_dataset, get_default_transform
@@ -48,7 +47,7 @@ def main():
     probas, labels = [], []
     with torch.no_grad():
         for images, target in tqdm(dataloader, 
-                                   desc=print(f"Running inference on {args.dataset} [{args.split}] with model from {args.model_name} for blurr level {args.blurr_level}")):
+        desc=print(f"Running inference on {args.dataset} [{args.split}] with model from {args.model_name} for blurr level {args.blurr_level}")):
             images = images.to(device)
             output = model(images)
             probas.append(output.cpu().numpy())
@@ -63,6 +62,7 @@ def main():
         blurr_level=args.blurr_level,
         split=args.split
     )
+    print(f"Saving probabilities to {probas_path} and labels to {labels_path}")
 
     save_probas_labels(probas, labels, probas_path, labels_path)
 

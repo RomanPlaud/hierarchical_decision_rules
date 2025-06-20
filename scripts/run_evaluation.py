@@ -1,17 +1,12 @@
 import sys
-import os
-sys.path.append('.')
+
 
 import argparse
-import json
-import pickle as pkl
-from pathlib import Path
 
 from hierulz.hierarchy import load_hierarchy
-from hierulz.metrics import load_metric, get_metric_config
+from hierulz.metrics import load_metric
 from hierulz.heuristics import load_heuristic
 from hierulz.models import get_model_config
-from hierulz.datasets import get_dataset_config
 from hierulz.utils import load_probas_and_labels, get_output_paths, save_evaluation_results
 
 
@@ -32,11 +27,10 @@ def main():
 
     # Load model configuration from JSON
     model_config = get_model_config(args.model_name)
-    metric_config = get_metric_config(args.metric_name, args.dataset)
 
     hierarchy = load_hierarchy(args.dataset)
 
-    metric = load_metric(metric_config['metric_name'], **metric_config.get('kwargs', {}))
+    metric = load_metric(args.metric_name, args.dataset)
     if args.decoding_method == "Optimal":
         decoding = metric
     else:

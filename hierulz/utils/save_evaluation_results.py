@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-def save_results_json(path_save, args, model_config, score):
+def save_evaluation_results(path_save, args, model_config, score):
     """
     Save evaluation results to a JSON file using args and model_config.
 

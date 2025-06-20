@@ -15,10 +15,13 @@ class HierarchicalDataset(Dataset):
     def __init__(self, root, transform=None, blurr_level=None, kernel_size=61):
         self.transform = transform
         self.dataset = ImageFolder(root, transform=transform)
-        self.blurr = (
-            transforms.GaussianBlur(kernel_size=kernel_size, sigma=blurr_level)
-            if blurr_level is not None else None
-        )
+        if blurr_level==0 or blurr_level is None:
+            self.blurr = None
+        else:
+            self.blurr = (
+                transforms.GaussianBlur(kernel_size=kernel_size, sigma=blurr_level)
+                if blurr_level is not None else None
+            )
 
     def __len__(self):
         return len(self.dataset)
