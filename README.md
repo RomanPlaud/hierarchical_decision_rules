@@ -32,8 +32,14 @@ data/
             └── ...
 ```
 3. Run :
-```
+```bash
 python3 scripts/interface.py
 ```
 4. Once the interface shows : 
-You can 
+    1. Select Dataset : "tieredimagenet_tiny" 
+    2. Click on "Load Random Image"
+    3. Select level of blur to the image with blur slider, click on Apply Blur
+    4. Select a model among the list of proposed models
+    5. Select a metric to optimized among the list of proposed models (if hFß is selected, select a ß)
+    6. Select a decoding method among the list of proposed methods
+    7. Click on "Decode Proba". Good predictions are highlighted in Green, bad in red. 

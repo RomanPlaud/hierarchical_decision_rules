@@ -5,6 +5,12 @@
       "beta": 2.0
   }
  },
+ "tieredimagenet_tiny": {
+    "metric_name": "hF_ß",
+    "kwargs": {
+      "beta": 2.0
+  }
+ },
  "inat19": {
     "metric_name": "hF_ß",
     "kwargs": {

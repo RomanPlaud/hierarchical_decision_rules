@@ -2,6 +2,9 @@
  "tieredimagenet": {
     "metric_name": "Accuracy"
  },
+  "tieredimagenet_tiny": {
+    "metric_name": "Accuracy"
+ },
  "inat19": {
     "metric_name": "Accuracy"
   }

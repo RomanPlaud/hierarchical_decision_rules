@@ -2,6 +2,9 @@
  "tieredimagenet": {
     "metric_name": "Mistake Severity"
  },
+ "tieredimagenet_tiny": {
+    "metric_name": "Mistake Severity"
+ },
  "inat19": {
     "metric_name": "Mistake Severity"
   }
