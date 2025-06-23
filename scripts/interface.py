@@ -1,7 +1,7 @@
 import sys
 import os
 
-sys.path.append('.')
+# sys.path.append('.')
 
 from PyQt5.QtWidgets import QApplication
 

@@ -101,7 +101,7 @@ class InterfaceHClassification(QWidget):
         layout = QHBoxLayout()
 
         self.dataset_combo = QComboBox()
-        self.dataset_combo.addItems(["", "tieredimagenet", "inat19"])
+        self.dataset_combo.addItems(["", "tieredimagenet_tiny", "tieredimagenet", "inat19"])
         self.dataset_combo.currentTextChanged.connect(self._select_dataset)  # Add a handler if you want
 
         layout.addWidget(QLabel("Dataset"))

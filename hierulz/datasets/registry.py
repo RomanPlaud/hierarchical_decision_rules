@@ -2,6 +2,7 @@
 # Map dataset names to their config JSON files (full or relative paths)
 DATASET_REGISTRY = {
     "tieredimagenet": "configs/datasets/config_tieredimagenet.json",
+    "tieredimagenet_tiny": "configs/datasets/config_tieredimagenet_tiny.json",
     "inat19": "configs/datasets/config_inat19.json",
 }
 
