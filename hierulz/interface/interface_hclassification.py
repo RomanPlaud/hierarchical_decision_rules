@@ -19,6 +19,14 @@ from hierulz.models import get_model_config, load_model
 from hierulz.metrics import load_metric
 from hierulz.heuristics import load_heuristic
 
+dico_names_heuristics = {'confidence_threshold': 'Thresholding 0.5',
+                         'crm_bm' : '(Karthik et al., 2021)',
+                         'expected_information': 'Exp. Information',
+                         'hie': 'Hie-Self (Jain et al., 2023)',
+                         'information_threshold': 'Information threshold',
+                         'plurality': 'Plurality',
+                         'top_down': 'Top-down argmax',
+                         'argmax_leaves': 'Argmax leaves'} 
 
 class InterfaceHClassification(QWidget):
     def __init__(self):
@@ -208,11 +216,19 @@ class InterfaceHClassification(QWidget):
         layout = QHBoxLayout(self.decoding_controls_container)
 
         self.decode_combo = QComboBox()
-        self.decode_combo.addItems([
-            'Optimal', 'Argmax leaves', 'Top-down argmax', 'Thresholding 0.5',
-            'Plurality', 'Exp. Information', 'Hie-Self (Jain et al., 2023)',
-            '(Karthik et al., 2021)'
-        ])
+        heuristics_dir = os.path.join(os.path.dirname(__file__), "../../configs/heuristics")
+        if os.path.isdir(heuristics_dir):
+            heuristic_files = [
+            os.path.splitext(f)[0]
+            for f in os.listdir(heuristics_dir)
+            if f.endswith('.json')
+            ]
+            items = ['Optimal'] + sorted(heuristic_files)
+        else:
+            items = ['Optimal']
+        # map heuristic names to user-friendly names
+        items = [dico_names_heuristics.get(name, name) for name in items]
+        self.decode_combo.addItems(items)
 
         layout.addWidget(QLabel("Decoding"))
         layout.addWidget(self.decode_combo)
