@@ -101,7 +101,16 @@ class InterfaceHClassification(QWidget):
         layout = QHBoxLayout()
 
         self.dataset_combo = QComboBox()
-        self.dataset_combo.addItems(["", "tieredimagenet_tiny", "tieredimagenet", "inat19"])
+        datasets_dir = os.path.join(os.path.dirname(__file__), "../../data/datasets")
+        if os.path.isdir(datasets_dir):
+            dataset_names = [""] + sorted([
+            name for name in os.listdir(datasets_dir)
+            if os.path.isdir(os.path.join(datasets_dir, name))
+            ])
+        else:
+            dataset_names = [""]
+
+        self.dataset_combo.addItems(dataset_names)
         self.dataset_combo.currentTextChanged.connect(self._select_dataset)  # Add a handler if you want
 
         layout.addWidget(QLabel("Dataset"))
