@@ -37,7 +37,7 @@ To explore our demo and visualize the results of different decoding strategies, 
     ```bash
     python3 scripts/interface.py
     ```
-### 4. Using the Interface
+4. Using the Interface
 
 Once the interface is running, follow these steps:
 
