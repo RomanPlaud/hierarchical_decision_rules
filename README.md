@@ -52,3 +52,86 @@ Once the interface is running, follow these steps:
 | 7    | **Decode:** Click **Decode Proba**. Predictions will be shown: <span style="color:green">green</span> for correct, <span style="color:red">red</span> for incorrect. |
 
 This interactive workflow helps you compare decoding strategies and metrics visually.
+
+## Using Your Own Dataset
+
+To use your own dataset with this project, follow these steps:
+
+1. **Download Datasets**  
+    - For `tieredimagenet` and `inat19`, refer to the instructions from [fiveai/makingbettermistakes](https://github.com/fiveai/makingbettermistakes).
+    - A tiny version of `tieredimagenet` is provided (`data/datasets/tieredimagenet_tiny.zip`). Unzip it as shown above.
+
+2. **Prepare Your Dataset**  
+    - Place your dataset in `data/datasets/` following the [ImageFolder](https://pytorch.org/vision/stable/generated/torchvision.datasets.ImageFolder.html) structure:
+      ```
+      data/datasets/
+         └─ your_dataset/
+              └─ test/
+                    ├── class1/
+                    ├── class2/
+                    └── ...
+      ```
+
+3. **Add a Dataset Configuration**  
+    - Create a config file at `configs/datasets/config_your_dataset.json` with the following structure:
+      ```json
+      {
+         "name": "your_dataset",
+         "class_to_idx": "data/hierarchies/your_dataset/your_dataset_class_to_idx.pkl",
+         "idx_to_name": "data/hierarchies/your_dataset/your_dataset_idx_to_name.pkl",
+         "hierarchy_idx": "data/hierarchies/your_dataset/your_dataset_hierarchy_idx.pkl",
+         "path_dataset": "data/datasets/your_dataset",
+         "path_dataset_test": "data/datasets/your_dataset/test"
+      }
+      ```
+      - **name**: Name of your dataset.
+      - **class_to_idx**: Path to a pickle file mapping leaf class names to indices, e.g., `{"class1": 0, "class2": 1, ...}` (indices should be consecutive from 0 to *num_leaf_classes*-1).
+      - **idx_to_name**: Path to a pickle file mapping indices to class names, e.g., `{0: "persian_cat", 1: "siamese_cat", ...}` (indices should cover all nodes in the hierarchy).
+      - **hierarchy_idx**: Path to a pickle file defining the hierarchy as a dictionary, e.g., `{4: [3, 2], 3: [0, 1]}` (keys are parent indices, values are lists of child indices).
+      - **path_dataset**: Path to your dataset root.
+      - **path_dataset_test**: Path to your test set.
+
+4. **Run the Interface**  
+    - Your dataset will now be available in the interface for selection and evaluation.
+
+## Using Your Own Model
+
+
+## Using Your Own Decoding Strategies
+
+Several decoding strategies are already implemented in `hierulz/heuristics`, including:
+
+- [Confidence Threshold](hierulz/heuristics/confidence_threshold.py) ([Valmadre, 2022](https://arxiv.org/pdf/2210.10929))
+- [CRM-BM](hierulz/heuristics/crm_bm.py) ([Karthik et al., 2021](https://arxiv.org/abs/2104.00795))
+- [Expected Information](hierulz/heuristics/expected_information.py) ([Deng et al., 2012](https://ieeexplore.ieee.org/document/6248086))
+- [HIE](hierulz/heuristics/hie.py) ([Jain et al., 2023](https://proceedings.neurips.cc/paper_files/paper/2023/file/c81690e2cfe63aede8519ad448f56d71-Paper-Conference.pdf))
+- [Information Threshold](hierulz/heuristics/information_threshold.py) ([Valmadre, 2022](https://arxiv.org/pdf/2210.10929))
+- [Plurality](hierulz/heuristics/plurality.py) ([Valmadre, 2022](https://arxiv.org/pdf/2210.10929))
+- [Top-Down](hierulz/heuristics/top_down.py)
+- [Argmax Leaf](hierulz/metrics/accuracy.py) ([Valmadre, 2022](https://arxiv.org/pdf/2210.10929))
+
+You can use these strategies as provided, or add your own custom decoding strategy by following these steps:
+
+1. **Implement Your Heuristic**  
+    - Create a new file, e.g., `your_heuristic.py`, in the `hierulz/heuristics/` directory.
+    - Define your heuristic as a class that inherits from the base [Heuristic](hierulz/heuristics/base_heuristic.py) class.
+
+2. **Add a Heuristic Configuration**  
+    - Create a JSON configuration file, e.g., `configs/heuristics/your_heuristic.json`, with the following structure:
+      ```json
+      {
+         "heuristic": "your_heuristic_name",
+         "kwargs": {
+            "your_argument_to_init_your_heuristic": "value"
+         }
+      }
+      ```
+    - Replace `"your_heuristic_name"` with the class name of your heuristic, and specify any required initialization arguments in `kwargs`.
+
+3. **Run the Interface**  
+    - Your custom heuristic will now appear in the interface for selection and evaluation.
+
+This modular approach makes it easy to experiment with and compare different decoding strategies within the provided interface.                          
+
+## Using your Own Metrics
+
