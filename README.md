@@ -154,7 +154,7 @@ You can use these metrics as provided, or add your own custom metric by followin
      - If your metric can be expressed as a function comparing either:
          - a node prediction to a leaf ground truth (Node2Leaf), or
          - a leaf prediction to a leaf ground truth (Leaf2Leaf),
-     - Precompute the metric over the hierarchy and save it as a pickle file in `data/hierarchies/your_dataset/your_metric.pkl`.
+     - Precompute the metric over the hierarchy and save it as a pickle file in `data/metrics/your_dataset_your_metric.pkl`.
      - The file should contain a NumPy array of shape `(num_nodes, num_leaf_classes)` for Node2Leaf (or `(num_leaf_classes, num_leaf_classes)` for Leaf2Leaf), normalized between 0 (perfect match) and 1 (no match).
 
 2. **Add a Metric Configuration**  
