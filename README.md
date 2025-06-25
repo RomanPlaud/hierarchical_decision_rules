@@ -134,71 +134,76 @@ You can use these strategies as provided, or add your own custom decoding strate
 
 This modular approach makes it easy to experiment with and compare different decoding strategies within the provided interface.                          
 
-## Using your Own Metric
+## Using Your Own Metric
 
-Several metrics are already implemented in `hierulz/metrics`, including:
+Several evaluation metrics are already implemented in `hierulz/metrics`, including:
 
-- [Accuracy metric](hierulz/metrics/accuracy.py) on leaf nodes
-- [Hierarchical F_beta score](hierulz/metrics/hf_beta_score.py) ([Kosmopoulos et al. , 2013](https://arxiv.org/pdf/1306.6802))
-- [Mistake Severity](hierulz/metrics/mistake_severity.py) (also call shortest path metric) (see *e.g.* [Bertinetto et al., 2020](https://openaccess.thecvf.com/content_CVPR_2020/papers/Bertinetto_Making_Better_Mistakes_Leveraging_Class_Hierarchies_With_Deep_Networks_CVPR_2020_paper.pdf)
-- Any metric able to compare a node prediction to a leaf ground truth (see [Node2Leaf](hierulz/metrics/node2leaf_metric.py) class). This includes 
-    - Wu-Palmer metric, [Wu & Palmer, 1994](https://aclanthology.org/P94-1019/)
-    - Zhao similarity [Zhao et al., 2017](https://openaccess.thecvf.com/content_ICCV_2017/papers/Zhao_Open_Vocabulary_Scene_ICCV_2017_paper.pdf)
-- Any metric able to compare a leaf prediction to a leaf ground truth (see [Leaf2leaf](hierulz/metrics/leaf2leaf_metric.py) class).
+- [Accuracy](hierulz/metrics/accuracy.py) (on leaf nodes)
+- [Hierarchical F<sub>β</sub> score](hierulz/metrics/hf_beta_score.py) ([Kosmopoulos et al., 2013](https://arxiv.org/pdf/1306.6802))
+- [Mistake Severity](hierulz/metrics/mistake_severity.py) (also called the shortest path metric, see [Bertinetto et al., 2020](https://openaccess.thecvf.com/content_CVPR_2020/papers/Bertinetto_Making_Better_Mistakes_Leveraging_Class_Hierarchies_With_Deep_Networks_CVPR_2020_paper.pdf))
+- Any metric comparing a node prediction to a leaf ground truth (see [Node2Leaf](hierulz/metrics/node2leaf_metric.py)), such as:
+    - Wu-Palmer metric ([Wu & Palmer, 1994](https://aclanthology.org/P94-1019/))
+    - Zhao similarity ([Zhao et al., 2017](https://openaccess.thecvf.com/content_ICCV_2017/papers/Zhao_Open_Vocabulary_Scene_ICCV_2017_paper.pdf))
+- Any metric comparing a leaf prediction to a leaf ground truth (see [Leaf2Leaf](hierulz/metrics/leaf2leaf_metric.py)).
 
-You can use these metrics as provided, or add your own custom metric by following these steps:
-**Option A **(most of metrics should fall inside this category)
+You can use these metrics as provided, or add your own custom metric by following one of the options below:
+
+### Option A: Precomputed Metrics (Recommended for Most Use Cases)
 
 1. **Implement Your Metric**  
-    If your metric can write as a function able 
-        - either to compare node prediction to a leaf ground truth (Node2Leaf class) 
-        - either to compare a leaf prediction to a leaf ground truth (Leaf2Leaf class)
-    Precompute the metric on the hierarchy and save it as a pickle file in `data/hierarchies/your_dataset/your_metric.pkl`. The metric should be np.array of shape `(num_nodes, num_leaf_classes)`. (or `(num_leaf_classes, num_leaf_classes)` if you use the Leaf2Leaf class). The metric should be normalized between 0 and 1, where 0 means perfect match and 1 means no match.
-    
-2. **Add a Metric Configuration**
-    - Create a JSON configuration file, e.g., `configs/metrics/your_metric.json`, with the following structure:
-      ```json
-      {
-        "tieredimagenet": {
-            "metric_name": "Wu-Palmer",
-            "kwargs": {
-            "cost_matrix": "data/metrics/wu-palmer_tieredimagenet.pkl"
-        }
-        },
-        ...
-        "your_dataset": {
-            "metric_name": "your_metric_name",
-            "kwargs": {
-            "cost_matrix": "data/metrics/your_metric_your_dataset.pkl"
-            }
-        }
-        }
-      ```
-      Each dataset should have its own entry, as the metric may vary across datasets. The `kwargs` should only contain the path to the precomputed metric file.
-**Option B**  (less common, for metrics that cannot be precomputed)
- 1. **Implement Your Metric**  
-        - Create a new file, e.g., `your_metric.py`, in the `hierulz/metrics/` directory.
-        - Define your metric as a class that inherits from the base [Metric](hierulz/metrics/base_metric.py) class.
- 2. **Add a Metric Configuration**
-        - Create a JSON configuration file, e.g., `configs/metrics/your_metric.json`, with the following structure:
-          ```json
-            {
-                "tieredimagenet": {
-                    "metric_name": "your_metric_name",
-                    "kwargs": {
-                    "your_argument_to_init_your_metric": "value",
-                }
-                },
-                ...
-                "your_dataset": {
-                    "metric_name": "your_metric_name",
-                    "kwargs": {
-                    "your_argument_to_init_your_metric": "value"
-                    }
-                }
-                }
-          ```
-        - Replace `"your_metric_name"` with the class name of your metric, and specify any required initialization arguments in `kwargs`.
+     - If your metric can be expressed as a function comparing either:
+         - a node prediction to a leaf ground truth (Node2Leaf), or
+         - a leaf prediction to a leaf ground truth (Leaf2Leaf),
+     - Precompute the metric over the hierarchy and save it as a pickle file in `data/hierarchies/your_dataset/your_metric.pkl`.
+     - The file should contain a NumPy array of shape `(num_nodes, num_leaf_classes)` for Node2Leaf (or `(num_leaf_classes, num_leaf_classes)` for Leaf2Leaf), normalized between 0 (perfect match) and 1 (no match).
 
-3. **Run the Interface**
-    - Your custom metric will now appear in the interface for selection and evaluation.
+2. **Add a Metric Configuration**  
+     - Create a JSON config file, e.g., `configs/metrics/your_metric.json`, with the following structure:
+         ```json
+         {
+             "tieredimagenet": {
+                 "metric_name": "your_metric_name",
+                 "kwargs": {
+                     "cost_matrix": "data/metrics/your_metric_tieredimagenet.pkl"
+                 }
+             },
+             "your_dataset": {
+                 "metric_name": "your_metric_name",
+                 "kwargs": {
+                     "cost_matrix": "data/metrics/your_metric_your_dataset.pkl"
+                 }
+             }
+         }
+         ```
+     - Each dataset should have its own entry, as the metric may differ across datasets.
+
+### Option B: Custom Metrics (For Metrics That Cannot Be Precomputed)
+
+1. **Implement Your Metric**  
+     - Create a new file, e.g., `your_metric.py`, in the `hierulz/metrics/` directory.
+     - Define your metric as a class inheriting from the base [Metric](hierulz/metrics/base_metric.py) class.
+
+2. **Add a Metric Configuration**  
+     - Create a JSON config file, e.g., `configs/metrics/your_metric.json`, with the following structure:
+         ```json
+         {
+             "tieredimagenet": {
+                 "metric_name": "your_metric_name",
+                 "kwargs": {
+                     "your_argument_to_init_your_metric": "value"
+                 }
+             },
+             "your_dataset": {
+                 "metric_name": "your_metric_name",
+                 "kwargs": {
+                     "your_argument_to_init_your_metric": "value"
+                 }
+             }
+         }
+         ```
+     - Replace `"your_metric_name"` with your metric class name and specify any required initialization arguments in `kwargs`.
+
+3. **Run the Interface**  
+     - Your custom metric will now be available in the interface for selection and evaluation.
+
+This modular design makes it easy to experiment with and compare different evaluation metrics within the provided interface.
