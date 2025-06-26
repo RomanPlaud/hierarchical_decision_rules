@@ -95,42 +95,64 @@ To use your own dataset with this project, follow these steps:
     - Your dataset will now be available in the interface for selection and evaluation.
 
 ## Using Your Own Model
-Several models are already implemented in `configs/models/tiered_imagenet`, these are only pretrained models on `ImageNet-1K` and which can be only used on `tiered_imagenet` (or its tiny version). 
-### To use another Pytorch pretrained model on `ImageNet-1K`, you can follow these steps:
-    1. **Create a Model Configuration**  
-        - Create a JSON config file, e.g., `configs/models/your_model.json`, with the following structure:
-        ```json
-        {
-            "model_name": "model_name",
-            "pretrained": true,
-            "idx_mapping": "data/hierarchies/tieredimagenet/tiredimagenet_corresponding_index.pkl"
-            }
 
-        ```
-        - Add the model in the [registry](hierulz/models/registry.py) by following the format of the existing models. 
-        The `idx_mapping` is a path to a pickle file mapping the model's output indices to the dataset's leaf class indices which is the same for all Pytorch pretrained models on `ImageNet-1K`.
-    2. **Add the Model to the Interface**  
-        - In the interface, the model will be available in the dropdown menu under the name you specified in the config file.
-### To use your own model, you can follow these steps:
-1. **Implement Your Model**
-    - Create a new file, e.g., `your_model.py`, in the `hierulz/models/` directory.
-2. Create a config file, e.g., `configs/models/your_model.json`, with the following structure:
-    ```json
-    {
-        "model_name": "your_model_name",
-        "kwargs": {
-            "your_argument_to_init_your_model1": "value",
-            "your_argument_to_init_your_model2": "value"
-        }
-    }
-    ```
-    - Replace `"your_model_name"` with the class name of your model, and specify any required initialization arguments in `kwargs`.
-3. Write the function [load_finetuned_model](hierulz/models/load_finetuned_model.py) to load your model. This function should return a PyTorch model that takes an image tensor as input and outputs either:
-    - a tensor of shape `(batch_size, num_nodes)` with probabilities for each node in the hierarchy, or
-    - a tensor of shape `(batch_size, num_leaf_classes)` with probabilities for each leaf class
-    - The model should be compatible with the dataset you specified in the interface.
+You can use either a PyTorch pretrained model or your own custom model with this project. Follow the instructions below based on your use case.
 
+### Using a PyTorch Pretrained Model (ImageNet-1K)
 
+1. **Create a Model Configuration**  
+    - Add a JSON config file, e.g., `configs/models/tieredimagenet/your_model.json`, with the following structure:
+      ```json
+      {
+         "model_name": "your_model_name",
+         "pretrained": true,
+         "idx_mapping": "data/hierarchies/tieredimagenet/tieredimagenet_corresponding_index.pkl"
+      }
+      ```
+      - `model_name`: Name of the model (to be displayed in the interface).
+      - `pretrained`: Set to `true` for PyTorch pretrained models.
+      - `idx_mapping`: Path to a pickle file mapping model output indices to dataset leaf class indices (use the provided mapping for all ImageNet-1K models).
+
+2. **Register the Model**  
+    - Add your model to the [model registry](hierulz/models/registry.py) following the format of existing entries.
+
+3. **Access in the Interface**  
+    - The model will appear in the dropdown menu under the name specified in your config file.
+
+> **Note:** Pretrained models are supported only for `tieredimagenet` (and its tiny version).
+
+---
+
+### Using Your Own Custom Model
+
+1. **Implement Your Model**  
+    - Add your model implementation as a new file, e.g., `your_model.py`, in the `hierulz/models/` directory.
+
+2. **Create a Model Configuration**  
+    - Add a JSON config file, e.g., `configs/models/your_dataset/your_model.json`, with the following structure:
+      ```json
+      {
+         "model_name": "your_model_name",
+         "kwargs": {
+            "arg1": "value1",
+            "arg2": "value2"
+         }
+      }
+      ```
+      - `model_name`: Name of the model (to be displayed in the interface).
+      - Specify any required initialization arguments in `kwargs`.
+      - Replace `your_dataset` with the name of the dataset your model is trained on.
+
+3. **Implement the Model Loader**  
+    - Update the function [load_finetuned_model](hierulz/models/load_finetuned_model.py) to load your model.  
+    - The loader should return a PyTorch model that takes an image tensor as input and outputs either:
+      - a tensor of shape `(batch_size, num_nodes)` (probabilities for each node in the hierarchy), or
+      - a tensor of shape `(batch_size, num_leaf_classes)` (probabilities for each leaf class).
+
+4. **Access in the Interface**  
+    - Your custom model will now be available for selection and evaluation in the interface.
+
+This modular approach allows you to easily integrate and evaluate different models within the provided interface.
 
 
 ## Using Your Own Decoding Strategies
@@ -150,7 +172,7 @@ You can use these strategies as provided, or add your own custom decoding strate
 
 1. **Implement Your Heuristic**  
     - Create a new file, e.g., `your_heuristic.py`, in the `hierulz/heuristics/` directory.
-    - Define your heuristic as a class that inherits from the base [Heuristic](hierulz/heuristics/base_heuristic.py) class.
+    - Define your heuristic as a class YourHeuristic that inherits from the base [Heuristic](hierulz/heuristics/base_heuristic.py) class.
 
 2. **Add a Heuristic Configuration**  
     - Create a JSON configuration file, e.g., `configs/heuristics/your_heuristic.json`, with the following structure:
@@ -164,7 +186,14 @@ You can use these strategies as provided, or add your own custom decoding strate
       ```
     - Replace `"your_heuristic_name"` with the class name of your heuristic, and specify any required initialization arguments in `kwargs`.
 
-3. **Run the Interface**  
+3. **Register the Heuristic**
+    - Add your heuristic to the [heuristic registry](hierulz/heuristics/registry.py) following the format of existing entries.
+    Example:     
+    ```python
+    'Your heuristic': HeuristicInfo(YourHeuristic, Path('configs/heuristics/your_heuristic.json'))
+    ```
+
+4. **Run the Interface**  
     - Your custom heuristic will now appear in the interface for selection and evaluation.
 
 This modular approach makes it easy to experiment with and compare different decoding strategies within the provided interface.                          
@@ -193,7 +222,7 @@ You can use these metrics as provided, or add your own custom metric by followin
      - The file should contain a NumPy array of shape `(num_nodes, num_leaf_classes)` for Node2Leaf (or `(num_leaf_classes, num_leaf_classes)` for Leaf2Leaf), normalized between 0 (perfect match) and 1 (no match).
 
 2. **Add a Metric Configuration**  
-     - Create a JSON config file, e.g., `configs/metrics/your_metric.json`, with the following structure:
+     - Create a JSON config file, e.g., `configs/metrics/interface/your_metric.json`, with the following structure:
          ```json
          {
              "tieredimagenet": {
@@ -212,11 +241,20 @@ You can use these metrics as provided, or add your own custom metric by followin
          ```
      - Each dataset should have its own entry, as the metric may differ across datasets.
 
+3. **Register the Metric**  
+     - Add your metric to the [metric registry](hierulz/metrics/registry.py) following the format of existing entries.
+     Example:
+     ```python
+     'Your Metric': MetricInfo(Node2Leaf, Path('configs/metrics/interface/your_metric.json'))
+     ```
+3. **Run the Interface**  
+     - Your custom metric will now be available in the interface for selection and evaluation.
+
 ### Option B: Custom Metrics (For Metrics That Cannot Be Precomputed)
 
 1. **Implement Your Metric**  
      - Create a new file, e.g., `your_metric.py`, in the `hierulz/metrics/` directory.
-     - Define your metric as a class inheriting from the base [Metric](hierulz/metrics/base_metric.py) class.
+     - Define your metric as a class YourMetric inheriting from the base [Metric](hierulz/metrics/base_metric.py) class.
 
 2. **Add a Metric Configuration**  
      - Create a JSON config file, e.g., `configs/metrics/your_metric.json`, with the following structure:
@@ -237,6 +275,13 @@ You can use these metrics as provided, or add your own custom metric by followin
          }
          ```
      - Replace `"your_metric_name"` with your metric class name and specify any required initialization arguments in `kwargs`.
+
+3. **Register the Metric**  
+     - Add your metric to the [metric registry](hierulz/metrics/registry.py) following the format of existing entries.
+     Example:
+     ```python
+     'Your Metric': MetricInfo(YourMetric, Path('configs/metrics/interface/your_metric.json'))
+     ```
 
 3. **Run the Interface**  
      - Your custom metric will now be available in the interface for selection and evaluation.

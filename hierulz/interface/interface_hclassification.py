@@ -27,6 +27,12 @@ dico_names_heuristics = {'confidence_threshold': 'Thresholding 0.5',
                          'plurality': 'Plurality',
                          'top_down': 'Top-down argmax',
                          'argmax_leaves': 'Argmax leaves'} 
+dico_names_metrics = {'accuracy': 'Accuracy',
+                      'hf1': 'hF_ß',
+                      'hamming': 'Hamming Loss',
+                      'mistake_severity': 'Mistake Severity',
+                      'wu_palmer': 'Wu-Palmer',
+                      'zhao': 'Zhao'}
 
 class InterfaceHClassification(QWidget):
     def __init__(self):
@@ -121,7 +127,13 @@ class InterfaceHClassification(QWidget):
         self.dataset_combo.addItems(dataset_names)
         self.dataset_combo.currentTextChanged.connect(self._select_dataset)  # Add a handler if you want
 
-        layout.addWidget(QLabel("Dataset"))
+        dataset_label = QLabel("Dataset")
+        dataset_label.setStyleSheet("font-size: 16pt; font-weight: bold;")
+        layout.addWidget(dataset_label)
+
+        self.dataset_combo.setStyleSheet("font-size: 14pt; min-height: 40px;")
+        self.dataset_combo.setMinimumHeight(40)
+        self.dataset_combo.setMinimumWidth(200)
         layout.addWidget(self.dataset_combo)
 
         return layout
@@ -131,25 +143,31 @@ class InterfaceHClassification(QWidget):
         container = QWidget()
         layout = QHBoxLayout(container)
 
-        layout.addWidget(QLabel("Blur level"))
+        label = QLabel("Blur level")
+        label.setStyleSheet("font-size: 16pt; font-weight: bold;")
+        layout.addWidget(label)
 
         self.blur_slider = QSlider(Qt.Horizontal)
         self.blur_slider.setRange(0, 200)
         self.blur_slider.setValue(0)
         self.blur_slider.valueChanged.connect(self._update_blur_label)
+        self.blur_slider.setMinimumHeight(40)
         layout.addWidget(self.blur_slider)
 
         self.blur_value_label = QLabel("0.0")
+        self.blur_value_label.setStyleSheet("font-size: 14pt;")
         layout.addWidget(self.blur_value_label)
 
         self.blur_button = QPushButton("Apply Blur")
         self.blur_button.clicked.connect(self._apply_blur)
+        self.blur_button.setMinimumHeight(50)
+        self.blur_button.setStyleSheet("font-size: 18pt; min-width: 150px;")
         layout.addWidget(self.blur_button)
 
         # Store the container so you can show/hide everything together
         self.blur_controls_container = container
         self.blur_controls_container.setVisible(False)  # Initially hidden
-        self.blur_controls_container.setMinimumHeight(40)  # Set minimum height for the blur controls
+        self.blur_controls_container.setMinimumHeight(50)  # Set minimum height for the blur controls
 
         return self.blur_controls_container
 
@@ -158,15 +176,25 @@ class InterfaceHClassification(QWidget):
         container = QWidget()
         layout = QHBoxLayout(container)
 
+        model_label = QLabel("Model")
+        model_label.setStyleSheet("font-size: 16pt; font-weight: bold;")
+        layout.addWidget(model_label)
+
         self.model_combo = QComboBox()
+        self.model_combo.setStyleSheet("font-size: 16pt; min-height: 40px; min-width: 200px;")
         # self.model_combo.currentTextChanged.connect(self._load_model)
 
-        layout.addWidget(QLabel("Model"))
         layout.addWidget(self.model_combo)
+
+        self.load_model_button = QPushButton("Load Model")
+        self.load_model_button.setMinimumHeight(50)
+        self.load_model_button.setStyleSheet("font-size: 18pt; min-width: 150px;")
+        self.load_model_button.clicked.connect(lambda: self._load_model(self.model_combo.currentText()))
+        layout.addWidget(self.load_model_button)
 
         self.model_controls_container = container
         self.model_controls_container.setVisible(False)  # Initially hidden
-        self.model_controls_container.setMinimumHeight(40)
+        self.model_controls_container.setMinimumHeight(50)
 
         return self.model_controls_container
 
@@ -176,32 +204,47 @@ class InterfaceHClassification(QWidget):
         self.metric_controls_container = QWidget()
         metric_layout = QHBoxLayout(self.metric_controls_container)
 
+        metrics_dir = os.path.join(os.path.dirname(__file__), "../../configs/metrics/interface")
+        if os.path.isdir(metrics_dir):
+            heuristic_files = [
+                os.path.splitext(f)[0]
+                for f in os.listdir(metrics_dir)
+                if f.endswith('.json')
+            ]
+            items = sorted(heuristic_files)
+        else:
+            items = []
+
+        # map heuristic names to user-friendly names
         self.metric_combo = QComboBox()
-        self.metric_combo.addItems([
-            " ", "hF_ß", "Mistake Severity", "Wu-Palmer", "Zhao",
-            "Accuracy", "Hamming Loss", "Wu-Palmer", "Zhao"
-        ])
+        items = [dico_names_metrics.get(name, name) for name in items]
+        self.metric_combo.addItems(items)
+        self.metric_combo.setStyleSheet("font-size: 16pt; min-height: 50px; min-width: 220px;")
         self.metric_combo.currentTextChanged.connect(self._select_metric)
 
-        metric_layout.addWidget(QLabel("Metric"))
+        metric_label = QLabel("Metric")
+        metric_label.setStyleSheet("font-size: 16pt; font-weight: bold;")
+        metric_layout.addWidget(metric_label)
         metric_layout.addWidget(self.metric_combo)
         self.metric_controls_container.setVisible(False)  # Initially hidden
-        self.metric_controls_container.setMinimumHeight(40)
+        self.metric_controls_container.setMinimumHeight(50)
 
         # --- Beta spinbox container ---
         self.beta_controls_container = QWidget()
         beta_layout = QHBoxLayout(self.beta_controls_container)
 
+        beta_label = QLabel("ß")
+        beta_label.setStyleSheet("font-size: 16pt; font-weight: bold;")
         self.beta_spin = QDoubleSpinBox()
         self.beta_spin.setRange(0.0, 9999.0)
         self.beta_spin.setSingleStep(0.1)
         self.beta_spin.setValue(1.0)
+        self.beta_spin.setStyleSheet("font-size: 16pt; min-height: 50px; min-width: 120px;")
 
-        beta_layout.addWidget(QLabel("ß"))
+        beta_layout.addWidget(beta_label)
         beta_layout.addWidget(self.beta_spin)
         self.beta_controls_container.setVisible(False)  # Initially hidden
-        self.beta_controls_container.setMinimumHeight(40)
-
+        self.beta_controls_container.setMinimumHeight(50)
 
         return self.metric_controls_container, self.beta_controls_container
 
@@ -215,9 +258,9 @@ class InterfaceHClassification(QWidget):
         heuristics_dir = os.path.join(os.path.dirname(__file__), "../../configs/heuristics")
         if os.path.isdir(heuristics_dir):
             heuristic_files = [
-            os.path.splitext(f)[0]
-            for f in os.listdir(heuristics_dir)
-            if f.endswith('.json')
+                os.path.splitext(f)[0]
+                for f in os.listdir(heuristics_dir)
+                if f.endswith('.json')
             ]
             items = ['Optimal'] + sorted(heuristic_files)
         else:
@@ -225,15 +268,20 @@ class InterfaceHClassification(QWidget):
         # map heuristic names to user-friendly names
         items = [dico_names_heuristics.get(name, name) for name in items]
         self.decode_combo.addItems(items)
+        self.decode_combo.setStyleSheet("font-size: 16pt; min-height: 50px; min-width: 220px;")
 
-        layout.addWidget(QLabel("Decoding"))
+        label = QLabel("Decoding")
+        label.setStyleSheet("font-size: 16pt; font-weight: bold;")
+        layout.addWidget(label)
         layout.addWidget(self.decode_combo)
 
         self.decode_button = QPushButton("Decode Proba")
+        self.decode_button.setStyleSheet("font-size: 18pt; min-height: 50px; min-width: 180px;")
         self.decode_button.clicked.connect(self._decode_proba)
         layout.addWidget(self.decode_button)
 
         self.decoding_controls_container.setVisible(False)  # Initially hidden
+        self.decoding_controls_container.setMinimumHeight(60)
         return self.decoding_controls_container
 
     
@@ -301,6 +349,7 @@ class InterfaceHClassification(QWidget):
             highlight_ids (set): optional set of IDs to highlight (e.g. correct prediction)
             highlight_color (str): background color for highlights
         """
+        self.output_label.setVisible(False)
         highlight_ids = set(highlight_ids or [])
 
         # Clear previous content

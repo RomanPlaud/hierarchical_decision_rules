@@ -37,10 +37,8 @@ def load_heuristic(heuristic_name: str, dataset_name: str) -> Callable:
     """
     hierarchy = load_hierarchy(dataset_name)
     # load config for the heuristic
-    if heuristic_name in HEURISTIC_REGISTRY:
-        heuristic_config_path = HEURISTIC_REGISTRY[heuristic_name].config_path
-    else:
-        heuristic_config_path = Path(f'configs/heuristics/{heuristic_name}.json')
+    heuristic_config_path = HEURISTIC_REGISTRY[heuristic_name].config_path
+
     with open(heuristic_config_path, 'r') as f:
             heuristic_config = json.load(f)
     

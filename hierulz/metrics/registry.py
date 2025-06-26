@@ -21,27 +21,24 @@ class MetricInfo:
 
 # Unified metric registry
 METRIC_REGISTRY: Dict[str, MetricInfo] = {
-    'Accuracy': MetricInfo(Accuracy, Path('configs/metrics/accuracy.json')),
-    'Hamming Loss': MetricInfo(HammingLoss, Path('configs/metrics/hamming.json')),
-    'hF_ß': MetricInfo(hFBetaScore, Path('configs/metrics/hf1.json')),
-    'Mistake Severity': MetricInfo(MistakeSeverity, Path('configs/metrics/mistake_severity.json')),
-    'Wu-Palmer': MetricInfo(Node2LeafMetric, Path('configs/metrics/wu_palmer.json')),
-    'Zhao': MetricInfo(Node2LeafMetric, Path('configs/metrics/zhao.json')),
-    'hF_1': MetricInfo(hFBetaScore, Path('configs/metrics/hf1.json')),
-    'hF_2': MetricInfo(hFBetaScore, Path('configs/metrics/hf2.json')),
-    'hF_0_5': MetricInfo(hFBetaScore, Path('configs/metrics/hf0_5.json')),
-
+    'Accuracy': MetricInfo(Accuracy, Path('configs/metrics/interface/accuracy.json')),
+    'Hamming Loss': MetricInfo(HammingLoss, Path('configs/metrics/interface/hamming.json')),
+    'hF_ß': MetricInfo(hFBetaScore, Path('configs/metrics/interface/hf1.json')),
+    'Mistake Severity': MetricInfo(MistakeSeverity, Path('configs/metrics/interface/mistake_severity.json')),
+    'Wu-Palmer': MetricInfo(Node2LeafMetric, Path('configs/metrics/interface/wu_palmer.json')),
+    'Zhao': MetricInfo(Node2LeafMetric, Path('configs/metrics/interface/zhao.json')),
 }
 
 
-def load_metric(metric_name: str, dataset_name: str) -> Callable:
+def load_metric(metric_name: str, dataset_name: str, interface=False) -> Callable:
     """
     Loads metric config and returns an instance of the specified metric.
     """
-    if metric_name not in METRIC_REGISTRY:
-        raise ValueError(f"Unknown metric: '{metric_name}'. Available metrics: {list(METRIC_REGISTRY.keys())}")
-    
-    config_path = METRIC_REGISTRY[metric_name].config_path
+    if metric_name in METRIC_REGISTRY:
+        config_path = METRIC_REGISTRY[metric_name].config_path
+    else:
+        base_dir = 'interface' if interface else 'experiments'
+        config_path = Path(f'configs/metrics/{base_dir}/{metric_name}.json')
 
     if not config_path.is_file():
         raise FileNotFoundError(f"Config file not found for metric '{metric_name}' at: {config_path}")
