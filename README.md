@@ -95,6 +95,41 @@ To use your own dataset with this project, follow these steps:
     - Your dataset will now be available in the interface for selection and evaluation.
 
 ## Using Your Own Model
+Several models are already implemented in `configs/models/tiered_imagenet`, these are only pretrained models on `ImageNet-1K` and which can be only used on `tiered_imagenet` (or its tiny version). 
+### To use another Pytorch pretrained model on `ImageNet-1K`, you can follow these steps:
+    1. **Create a Model Configuration**  
+        - Create a JSON config file, e.g., `configs/models/your_model.json`, with the following structure:
+        ```json
+        {
+            "model_name": "model_name",
+            "pretrained": true,
+            "idx_mapping": "data/hierarchies/tieredimagenet/tiredimagenet_corresponding_index.pkl"
+            }
+
+        ```
+        - Add the model in the [registry](hierulz/models/registry.py) by following the format of the existing models. 
+        The `idx_mapping` is a path to a pickle file mapping the model's output indices to the dataset's leaf class indices which is the same for all Pytorch pretrained models on `ImageNet-1K`.
+    2. **Add the Model to the Interface**  
+        - In the interface, the model will be available in the dropdown menu under the name you specified in the config file.
+### To use your own model, you can follow these steps:
+1. **Implement Your Model**
+    - Create a new file, e.g., `your_model.py`, in the `hierulz/models/` directory.
+2. Create a config file, e.g., `configs/models/your_model.json`, with the following structure:
+    ```json
+    {
+        "model_name": "your_model_name",
+        "kwargs": {
+            "your_argument_to_init_your_model1": "value",
+            "your_argument_to_init_your_model2": "value"
+        }
+    }
+    ```
+    - Replace `"your_model_name"` with the class name of your model, and specify any required initialization arguments in `kwargs`.
+3. Write the function [load_finetuned_model](hierulz/models/load_finetuned_model.py) to load your model. This function should return a PyTorch model that takes an image tensor as input and outputs either:
+    - a tensor of shape `(batch_size, num_nodes)` with probabilities for each node in the hierarchy, or
+    - a tensor of shape `(batch_size, num_leaf_classes)` with probabilities for each leaf class
+    - The model should be compatible with the dataset you specified in the interface.
+
 
 
 

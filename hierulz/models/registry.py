@@ -25,15 +25,15 @@ class ModelInfo:
 
 # Unified model registry
 MODEL_REGISTRY = {
-    'alexnet': ModelInfo(alexnet, AlexNet_Weights, Path('configs/models/tieredimagenet/pretrained/alexnet.json')),
-    'convnext_tiny': ModelInfo(convnext_tiny, ConvNeXt_Tiny_Weights, Path('configs/models/tieredimagenet/pretrained/convnext_tiny.json')),
-    'densenet121': ModelInfo(densenet121, DenseNet121_Weights, Path('configs/models/tieredimagenet/pretrained/densenet121.json')),
-    'efficientnet_v2_s': ModelInfo(efficientnet_v2_s, EfficientNet_V2_S_Weights, Path('configs/models/tieredimagenet/pretrained/efficientnet_v2_s.json')),
-    'inception_v3': ModelInfo(inception_v3, Inception_V3_Weights, Path('configs/models/tieredimagenet/pretrained/inception_v3.json')),
-    'resnet18': ModelInfo(resnet18, ResNet18_Weights, Path('configs/models/tieredimagenet/pretrained/resnet18.json')),
-    'swin_v2_t': ModelInfo(swin_v2_t, Swin_V2_T_Weights, Path('configs/models/tieredimagenet/pretrained/swin_v2_t.json')),
-    'vgg11': ModelInfo(vgg11, VGG11_Weights, Path('configs/models/tieredimagenet/pretrained/vgg11.json')),
-    'vit_b_16': ModelInfo(vit_b_16, ViT_B_16_Weights, Path('configs/models/tieredimagenet/pretrained/vit_b_16.json')),
+    'alexnet': ModelInfo(alexnet, AlexNet_Weights, Path('configs/models/tieredimagenet/alexnet.json')),
+    'convnext_tiny': ModelInfo(convnext_tiny, ConvNeXt_Tiny_Weights, Path('configs/models/tieredimagenet/convnext_tiny.json')),
+    'densenet121': ModelInfo(densenet121, DenseNet121_Weights, Path('configs/models/tieredimagenet/densenet121.json')),
+    'efficientnet_v2_s': ModelInfo(efficientnet_v2_s, EfficientNet_V2_S_Weights, Path('configs/models/tieredimagenet/efficientnet_v2_s.json')),
+    'inception_v3': ModelInfo(inception_v3, Inception_V3_Weights, Path('configs/models/tieredimagenet/inception_v3.json')),
+    'resnet18': ModelInfo(resnet18, ResNet18_Weights, Path('configs/models/tieredimagenet/resnet18.json')),
+    'swin_v2_t': ModelInfo(swin_v2_t, Swin_V2_T_Weights, Path('configs/models/tieredimagenet/swin_v2_t.json')),
+    'vgg11': ModelInfo(vgg11, VGG11_Weights, Path('configs/models/tieredimagenet/vgg11.json')),
+    'vit_b_16': ModelInfo(vit_b_16, ViT_B_16_Weights, Path('configs/models/tieredimagenet/vit_b_16.json')),
 }
 
 

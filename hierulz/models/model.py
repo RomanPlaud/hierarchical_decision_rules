@@ -9,7 +9,7 @@ class HierarchicalModel(nn.Module):
     modification of its classifier layer (e.g., pruning outputs).
     """
 
-    def __init__(self, model):
+    def __init__(self, model, flat_classifier: bool = True):
         """
         Initialize the HierarchicalModel.
 
@@ -19,6 +19,7 @@ class HierarchicalModel(nn.Module):
         super(HierarchicalModel, self).__init__()
         self.model = model
         self.classifier_layer = self._find_last_linear_layer()
+        self.flat_classifier = flat_classifier
         
 
     def _find_last_linear_layer(self) -> nn.Linear:
@@ -67,8 +68,9 @@ class HierarchicalModel(nn.Module):
         Returns:
             torch.Tensor: Output logits.
         """
-        logits = self.model(x)
         # apply softmax to logits
-        probas = F.softmax(logits, dim=1)
-        return probas
+        if self.flat_classifier:
+            return F.softmax(self.model(x), dim=1)
+        else:
+            return self.model(x)
 

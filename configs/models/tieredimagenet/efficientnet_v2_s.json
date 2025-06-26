@@ -1,0 +1,5 @@
+{
+  "model_name": "efficientnet_v2_s",
+  "pretrained": true,
+  "idx_mapping": "data/hierarchies/tieredimagenet/tiredimagenet_corresponding_index.pkl"
+}

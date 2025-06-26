@@ -1,0 +1,5 @@
+{
+  "model_name": "resnet18",
+  "pretrained": true,
+  "idx_mapping": "data/hierarchies/tieredimagenet/tiredimagenet_corresponding_index.pkl"
+}

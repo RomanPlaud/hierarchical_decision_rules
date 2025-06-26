@@ -1,7 +1,0 @@
-README.md
-pyproject.toml
-hierulz/__init__.py
-hierulz.egg-info/PKG-INFO
-hierulz.egg-info/SOURCES.txt
-hierulz.egg-info/dependency_links.txt
-hierulz.egg-info/top_level.txt

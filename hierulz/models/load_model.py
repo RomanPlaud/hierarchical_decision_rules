@@ -1,7 +1,7 @@
 import pickle as pkl
 
 from .load_pretrained_model import load_pretrained_model
-# from .load_finetuned_model import load_finetuned_model
+from .load_finetuned_model import load_finetuned_model
 from .model import HierarchicalModel
 
 
@@ -25,8 +25,8 @@ def load_model(config_model):
         else: 
             print("No idx_mapping provided, using the full classifier layer.")
     else:
-        # model = load_finetuned_model(config_model['model_name'], config_model['dataset_name'])
-        # model = HierarchicalModel(model)
+        model = load_finetuned_model(config_model, config_model['dataset_name'])
+        model = HierarchicalModel(model)
         raise ValueError("Not supported yet")
 
     return model

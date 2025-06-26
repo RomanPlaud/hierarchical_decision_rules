@@ -24,11 +24,12 @@ HEURISTIC_REGISTRY: Dict[str, HeuristicInfo] = {
     '(Karthik et al., 2021)': HeuristicInfo(CRM_BM, Path('configs/heuristics/crm_bm.json')),
     'Exp. Information': HeuristicInfo(ExpectedInformation, Path('configs/heuristics/expected_information.json')),
     'Hie-Self (Jain et al., 2023)': HeuristicInfo(HiE, Path('configs/heuristics/hie.json')),
-    'information_threshold': HeuristicInfo(InformationThreshold, Path('configs/heuristics/information_threshold.json')),
+    'Information threshold': HeuristicInfo(InformationThreshold, Path('configs/heuristics/information_threshold.json')),
     'Plurality': HeuristicInfo(Plurality, Path('configs/heuristics/plurality.json')),
     'Top-down argmax': HeuristicInfo(TopDown, Path('configs/heuristics/top_down.json')),
     'Argmax leaves': HeuristicInfo(Accuracy, Path('configs/heuristics/argmax_leaves.json'))
 }
+
 
 def load_heuristic(heuristic_name: str, dataset_name: str) -> Callable:
     """
@@ -36,11 +37,11 @@ def load_heuristic(heuristic_name: str, dataset_name: str) -> Callable:
     """
     hierarchy = load_hierarchy(dataset_name)
     # load config for the heuristic
-    heuristic_config_path = HEURISTIC_REGISTRY[heuristic_name].config_path
+    if heuristic_name in HEURISTIC_REGISTRY:
+        heuristic_config_path = HEURISTIC_REGISTRY[heuristic_name].config_path
+    else:
+        heuristic_config_path = Path(f'configs/heuristics/{heuristic_name}.json')
     with open(heuristic_config_path, 'r') as f:
-        heuristic_config = json.load(f)
-
-    if heuristic_name not in HEURISTIC_REGISTRY:
-        raise ValueError(f"Unknown heuristic: '{heuristic_name}'. Available heuristics: {list(HEURISTIC_REGISTRY.keys())}")
+            heuristic_config = json.load(f)
     
     return HEURISTIC_REGISTRY[heuristic_name].constructor(hierarchy, **heuristic_config.get('kwargs', {}))

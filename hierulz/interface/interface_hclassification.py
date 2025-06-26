@@ -159,11 +159,7 @@ class InterfaceHClassification(QWidget):
         layout = QHBoxLayout(container)
 
         self.model_combo = QComboBox()
-        self.model_combo.addItems([
-            '', 'alexnet', 'convnext_tiny', 'densenet121', 'efficientnet_v2_s',
-            'inception_v3', 'resnet18', 'swin_v2_t', 'vgg11', 'vit_b_16'
-        ])
-        self.model_combo.currentTextChanged.connect(self._load_model)
+        # self.model_combo.currentTextChanged.connect(self._load_model)
 
         layout.addWidget(QLabel("Model"))
         layout.addWidget(self.model_combo)
@@ -265,6 +261,9 @@ class InterfaceHClassification(QWidget):
 
         self.btn_load.setVisible(True)
         self.image_side_container.setVisible(True)  # Show image side when dataset is selected
+        self.update_model_combo()  # Update model combo based on selected dataset
+        
+
 
 
     def _load_random_image(self):
@@ -392,8 +391,9 @@ class InterfaceHClassification(QWidget):
         decoding_method = self.decode_combo.currentText()
         if decoding_method == "Optimal":
             self.decoding = self.metric
-        else:
+        else: 
             self.decoding = load_heuristic(decoding_method, self.config_dataset['name'])
+
         # Decode predictions
         # get nodes probas
         probas_nodes = self.hierarchy.get_probas(self.proba)
@@ -411,6 +411,20 @@ class InterfaceHClassification(QWidget):
             highlight_ids=self.last_groundtruth_path,  # optional
             highlight_color="#d4fdd4"  # greenish
         )
+        
+    
+    def update_model_combo(self):
+        selected_dataset = self.dataset_combo.currentText()
+        models_dir = os.path.join(os.path.dirname(__file__), f"../../configs/models/{selected_dataset}")
+        if os.path.isdir(models_dir):
+            model_files = [
+                os.path.splitext(f)[0]
+                for f in os.listdir(models_dir)
+                if f.endswith('.json')
+            ]
+            self.model_combo.clear()
+            self.model_combo.addItems([''] + sorted(model_files))
+        self.model_combo.currentTextChanged.connect(self._load_model)
 
 
         
