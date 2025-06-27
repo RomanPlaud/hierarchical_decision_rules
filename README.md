@@ -154,8 +154,6 @@ You can use either a PyTorch pretrained model or your own custom model with this
 
 > **Note:** Pretrained models are supported only for `tieredimagenet` (and its tiny version).
 
----
-
 ### Using Your Own Custom Model
 
 1. **Implement Your Model**  
