@@ -30,7 +30,8 @@ src="https://img.shields.io/badge/arXiv-hierulz-b31b1b.svg" height=25em></a>
 
 ---
 
-## Installation
+## Installation ⚡️
+
 
 Install the package in editable mode:
 
@@ -39,7 +40,8 @@ git clone https://github.com/RomanPlaud/hierarchical_decision_rules.git
 pip install -e .
 ```
 
-## Interface Demo
+## Interface Demo 🎛️
+
 
 To explore our demo and visualize the results of different decoding strategies, follow these steps:
 
@@ -78,8 +80,12 @@ Once the interface is running, follow these steps:
 | 7    | **Decode:** Click **Decode Proba**. Predictions will be shown: <span style="color:green">green</span> for correct, <span style="color:red">red</span> for incorrect. |
 
 This interactive workflow helps you compare decoding strategies and metrics visually.
+---
+---
 
-## Using Your Own Dataset
+
+## Using Your Own Dataset 🗂️
+
 
 To use your own dataset with this project, follow these steps:
 
@@ -120,9 +126,10 @@ To use your own dataset with this project, follow these steps:
 4. **Run the Interface**  
     - Your dataset will now be available in the interface for selection and evaluation.
 
-## Using Your Own Model
+## Using Your Own Model 🧩
 
 You can use either a PyTorch pretrained model or your own custom model with this project. Follow the instructions below based on your use case.
+
 
 ### Using a PyTorch Pretrained Model (ImageNet-1K)
 
@@ -181,7 +188,8 @@ You can use either a PyTorch pretrained model or your own custom model with this
 This modular approach allows you to easily integrate and evaluate different models within the provided interface.
 
 
-## Using Your Own Decoding Strategies
+## Using Your Own Decoding Strategies 🧠
+
 
 Several decoding strategies are already implemented in `hierulz/heuristics`, including:
 
@@ -224,7 +232,8 @@ You can use these strategies as provided, or add your own custom decoding strate
 
 This modular approach makes it easy to experiment with and compare different decoding strategies within the provided interface.                          
 
-## Using Your Own Metric
+## Using Your Own Metric 📏
+
 
 Several evaluation metrics are already implemented in `hierulz/metrics`, including:
 
