@@ -80,7 +80,7 @@ Once the interface is running, follow these steps:
 | 7    | **Decode:** Click **Decode Proba**. Predictions will be shown: <span style="color:green">green</span> for correct, <span style="color:red">red</span> for incorrect. |
 
 This interactive workflow helps you compare decoding strategies and metrics visually.
----
+
 ---
 
 
