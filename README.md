@@ -320,3 +320,17 @@ You can use these metrics as provided, or add your own custom metric by followin
      - Your custom metric will now be available in the interface for selection and evaluation.
 
 This modular design makes it easy to experiment with and compare different evaluation metrics within the provided interface.
+
+## Citation 📚
+
+```
+@misc{plaud2025metricdecodingposthocoptimal,
+      title={To Each Metric Its Decoding: Post-Hoc Optimal Decision Rules of Probabilistic Hierarchical Classifiers}, 
+      author={Roman Plaud and Alexandre Perez-Lebel and Matthieu Labeau and Antoine Saillenfest and Thomas Bonald},
+      year={2025},
+      eprint={2506.01552},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2506.01552}, 
+}
+```
