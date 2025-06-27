@@ -1,6 +1,32 @@
-# To Each Metric Its Decoding: Post-Hoc Optimal Decision Rules of Probabilistic Hierarchical Classifiers 🔍
+<div align="center">
+<h1>
+To Each Metric Its Decoding: Post-Hoc Optimal Decision Rules of Probabilistic Hierarchical Classifiers 🔍
+<br>
+</h1>
 
-**Official implementation of [To Each Metric Its Decoding: Post-Hoc Optimal Decision Rules of Probabilistic Hierarchical Classifiers](https://openreview.net/forum?id=5zsBvPOIUQ), ICML 2025.**
+<h2>
+ICML 2025
+<br>
+<br>
+<a href="https://romanplaud.github.io/">Roman Plaud</a>&ensp;
+<a href="https://scholar.google.com/citations?user=A0M2jTMAAAAJ&hl=fr">Alexandre Perez-Lebel</a>&ensp;
+
+<a href="https://scholar.google.com/citations?user=A0M2jTMAAAAJ&hl=fr">Matthieu Labeau</a>&ensp;
+<a href="https://toinesayan.github.io/">Antoine Saillenfest</a>&ensp;
+<a href="https://perso.telecom-paristech.fr/bonald/Home_page.html"></a>&ensp;
+</h2>
+
+<p></p>
+<a href="https://arxiv.org/abs/2506.01552"><img
+src="https://img.shields.io/badge/arXiv-hierulz-b31b1b.svg" height=25em></a>
+
+![main_figure.png](./assets/meme_icml-1.png)
+
+</div>
+
+## Abstract
+
+<em> Hierarchical classification offers an approach to incorporate the concept of mistake severity by leveraging a structured, labeled hierarchy. However, decoding in such settings frequently relies on heuristic decision rules, which may not align with task-specific evaluation metrics. In this work, we propose a framework for the optimal decoding of an output probability distribution with respect to a target metric. We derive optimal decision rules for increasingly complex prediction settings, providing universal algorithms when candidates are limited to the set of nodes. In the most general case of predicting a subset of nodes, we focus on rules dedicated to the hierarchical hFß scores, tailored to hierarchical settings. To demonstrate the practical utility of our approach, we conduct extensive empirical evaluations, showcasing the superiority of our proposed optimal strategies, particularly in underdetermined scenarios. These results highlight the potential of our methods to enhance the performance and reliability of hierarchical classifiers in real-world applications. </em>
 
 ---
 
