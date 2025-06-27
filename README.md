@@ -13,7 +13,7 @@ ICML 2025
 
 <a href="https://scholar.google.com/citations?user=A0M2jTMAAAAJ&hl=fr">Matthieu Labeau</a>&ensp;
 <a href="https://toinesayan.github.io/">Antoine Saillenfest</a>&ensp;
-<a href="https://perso.telecom-paristech.fr/bonald/Home_page.html"></a>&ensp;
+<a href="https://perso.telecom-paristech.fr/bonald/Home_page.html">Thomas Bonald</a>&ensp;
 </h2>
 
 <p></p>
